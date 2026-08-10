@@ -22,13 +22,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CONFIGURACIÓN DE NODEMAILER PARA ENVÍO DE CORREOS EXCLUSIVO DE ADMINS
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // Usa SSL directo
   auth: {
-    user: process.env.EMAIL_USER || 'tanubistv@gmail.com', // Tu correo Gmail
-    pass: process.env.EMAIL_PASS || 'gwobjinhmeesloou'  // Tu contraseña de aplicación de 16 caracteres
+    user: process.env.EMAIL_USER || 'tanubistv@gmail.com',
+    pass: process.env.EMAIL_PASS || 'gwobjinhmeesloou'
   }
 });
-
 async function sendAdminRecoveryEmail(toEmail, tempPassword) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.log(`[LOG RECUPERACIÓN ADMIN] Sin variables SMTP. Temp Pass para ${toEmail}: ${tempPassword}`);
