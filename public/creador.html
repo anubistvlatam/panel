@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Creador - Cpanel Anubis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4 font-sans">
+
+  <!-- LOGIN CREADOR -->
+  <div id="view-creator-login" class="w-full max-w-md bg-slate-900 border border-amber-500/40 rounded-2xl p-8 shadow-2xl space-y-6">
+    <div class="text-center">
+      <h1 class="text-2xl font-black text-amber-500 tracking-wider">PANEL DE CREADOR</h1>
+      <p class="text-xs text-slate-400 mt-1">Acceso personal e independiente para control del sistema</p>
+    </div>
+
+    <form id="form-creator-login" class="space-y-4">
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Usuario Creador</label>
+        <input type="text" id="creator-user" value="Anubistv" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 font-mono">
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="block text-xs uppercase text-slate-400">Contraseña</label>
+          <button type="button" onclick="requestCreatorReset()" class="text-xs text-amber-500 hover:underline">¿Olvidaste tu contraseña?</button>
+        </div>
+        <input type="password" id="creator-pass" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+
+      <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 font-bold py-2.5 rounded-lg text-xs transition">
+        ENTRAR AL PANEL CREADOR
+      </button>
+    </form>
+  </div>
+
+  <!-- CAMBIO OBLIGATORIO CONTRASEÑA CREADOR -->
+  <div id="view-creator-force-pass" class="hidden w-full max-w-md bg-slate-900 border border-amber-500/50 rounded-2xl p-8 shadow-2xl space-y-4">
+    <h2 class="text-2xl font-bold text-amber-500">Actualiza tu Contraseña de Creador</h2>
+    <p class="text-xs text-slate-400">Has accedido con la clave temporal. Asigna tu nueva contraseña personalizada.</p>
+    <form id="form-creator-change-pass" class="space-y-4 pt-2">
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nueva Contraseña</label>
+        <input type="password" id="creator-new-custom-pass" required placeholder="Mínimo 6 caracteres" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+      <button type="submit" class="w-full rounded-lg bg-amber-600 py-2.5 font-semibold text-white hover:bg-amber-500 transition">Guardar y Continuar</button>
+    </form>
+  </div>
+
+  <!-- PANEL CREADOR -->
+  <div id="view-creator-panel" class="hidden w-full max-w-2xl bg-slate-900 border border-amber-500/50 rounded-2xl p-8 shadow-2xl space-y-8">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div>
+        <h2 class="text-xl font-bold text-amber-500">Gestión de Administradores</h2>
+        <p class="text-xs text-slate-400">Crea nuevos Administradores o administra los existentes</p>
+      </div>
+      <button onclick="logoutCreator()" class="text-xs bg-red-600/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg font-bold hover:bg-red-600 hover:text-white transition">Salir</button>
+    </div>
+
+    <!-- 3. FORMULARIO CAMPOS VACÍOS POR DEFECTO PARA EVITAR CONFUSIÓN -->
+    <form id="form-setup-admin" class="space-y-4 bg-slate-950 p-5 border border-slate-800 rounded-xl">
+      <h3 class="text-sm font-bold text-amber-400 uppercase">Crear o Actualizar Administrador</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Nombre del Administrador</label>
+          <input type="text" id="admin-setup-name" placeholder="Ej: Administrador Principal" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Correo Electrónico Admin</label>
+          <input type="email" id="admin-setup-email" placeholder="correo@ejemplo.com" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Contraseña del Administrador</label>
+        <input type="password" id="admin-setup-pass" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+
+      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition text-xs uppercase tracking-wider">
+        💾 Guardar / Crear Administrador
+      </button>
+    </form>
+
+    <!-- TABLA DE ADMINISTRADORES REGISTRADOS -->
+    <div class="space-y-3">
+      <h3 class="text-sm font-bold text-amber-400 uppercase">Administradores Registrados</h3>
+      <div class="overflow-x-auto max-h-60 overflow-y-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-800 uppercase text-slate-400 sticky top-0">
+            <tr>
+              <th class="p-2.5">ID</th>
+              <th class="p-2.5">Nombre</th>
+              <th class="p-2.5">Correo</th>
+              <th class="p-2.5">Estado Pass</th>
+              <th class="p-2.5">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="creator-admins-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('form-creator-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('creator-user').value;
+      const password = document.getElementById('creator-pass').value;
+
+      try {
+        const res = await fetch('/api/creator/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('view-creator-login').classList.add('hidden');
+
+          if (data.mustChangePassword) {
+            document.getElementById('view-creator-force-pass').classList.remove('hidden');
+          } else {
+            document.getElementById('view-creator-panel').classList.remove('hidden');
+            resetAdminForm();
+            loadCreatorAdminsList();
+          }
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert("Error de conexión al servidor.");
+      }
+    });
+
+    function resetAdminForm() {
+      document.getElementById('admin-setup-name').value = '';
+      document.getElementById('admin-setup-email').value = '';
+      document.getElementById('admin-setup-pass').value = '';
+    }
+
+    async function loadCreatorAdminsList() {
+      try {
+        const res = await fetch('/api/creator/admins');
+        const admins = await res.json();
+        const tbody = document.getElementById('creator-admins-table-body');
+
+        if (admins.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-slate-500">No hay administradores creados.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = admins.map(a => `
+          <tr class="border-b border-slate-800 hover:bg-slate-800/40">
+            <td class="p-2.5">${a.id}</td>
+            <td class="p-2.5 font-bold text-white">${a.name || 'Admin'}</td>
+            <td class="p-2.5 font-mono">${a.email}</td>
+            <td class="p-2.5">${a.must_change_password ? '<span class="text-amber-400">Reset Pendiente</span>' : '<span class="text-emerald-400">Activo</span>'}</td>
+            <td class="p-2.5 flex gap-2">
+              <button onclick="quickSelectAdmin('${a.name || ''}', '${a.email}')" class="bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/30 px-2 py-1 rounded text-[10px] font-bold transition">Editar / Reset</button>
+              <button onclick="deleteAdminByCreator(${a.id}, '${a.email}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 px-2 py-1 rounded text-[10px] font-bold transition">Eliminar</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error("Error cargando lista de admins");
+      }
+    }
+
+    async function deleteAdminByCreator(id, email) {
+      if (!confirm(`¿Estás seguro de eliminar al Administrador ${email}?`)) return;
+
+      try {
+        const res = await fetch(`/api/creator/delete-admin/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.message || data.error);
+        if (res.ok) {
+          resetAdminForm();
+          loadCreatorAdminsList();
+        }
+      } catch (err) {
+        alert("Error al eliminar administrador.");
+      }
+    }
+
+    // CARGAR DATOS EN EL FORMULARIO SOLO SI EL CREADOR HACE CLIC EN EDITAR
+    function quickSelectAdmin(name, email) {
+      document.getElementById('admin-setup-name').value = name;
+      document.getElementById('admin-setup-email').value = email;
+      document.getElementById('admin-setup-pass').focus();
+    }
+
+    async function requestCreatorReset() {
+      try {
+        const res = await fetch('/api/creator/forgot-password', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message + "\n\nRevisa la consola/terminal del servidor para ver la clave temporal.");
+      } catch (err) {
+        alert("Error enviando solicitud.");
+      }
+    }
+
+    document.getElementById('form-creator-change-pass').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('creator-new-custom-pass').value;
+
+      const res = await fetch('/api/creator/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword })
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+
+      if (res.ok) {
+        document.getElementById('view-creator-force-pass').classList.add('hidden');
+        document.getElementById('view-creator-panel').classList.remove('hidden');
+        resetAdminForm();
+        loadCreatorAdminsList();
+      }
+    });
+
+    document.getElementById('form-setup-admin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('admin-setup-name').value;
+      const email = document.getElementById('admin-setup-email').value;
+      const password = document.getElementById('admin-setup-pass').value;
+
+      try {
+        const res = await fetch('/api/creator/setup-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          resetAdminForm();
+          loadCreatorAdminsList();
+        }
+      } catch (err) {
+        alert("Error registrando Administrador.");
+      }
+    });
+
+    function logoutCreator() {
+      document.getElementById('view-creator-panel').classList.add('hidden');
+      document.getElementById('view-creator-login').classList.remove('hidden');
+      document.getElementById('creator-pass').value = '';
+      resetAdminForm();
+    }
+  </script>
+</body>
+</html>
