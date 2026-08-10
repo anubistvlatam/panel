@@ -112,6 +112,91 @@ function cleanupOldRechargeRequests() {
   }
 }
 
+// ------------------------------------------------------------------
+// RUTAS EXCLUSIVAS DEL PANEL CREADOR (CREADOR.HTML)
+// ------------------------------------------------------------------
+let creatorPassHash = bcrypt.hashSync("Anubis.123*", 10);
+let creatorMustChangePass = false;
+
+app.post('/api/creator/login', loginLimiter, (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (username !== 'Anubistv' || !bcrypt.compareSync(password, creatorPassHash)) {
+      return res.status(401).json({ error: 'Usuario o contraseña de Creador incorrectos.' });
+    }
+    res.json({ message: 'Login de Creador exitoso', mustChangePassword: creatorMustChangePass });
+  } catch (err) {
+    res.status(500).json({ error: 'Error en login de Creador: ' + err.message });
+  }
+});
+
+app.post('/api/creator/forgot-password', (req, res) => {
+  const tempPass = "RESET" + Math.floor(100000 + Math.random() * 900000);
+  creatorPassHash = bcrypt.hashSync(tempPass, 10);
+  creatorMustChangePass = true;
+  console.log(`\n[CREADOR] CONTRASEÑA TEMPORAL CREADOR: ${tempPass}\n`);
+  res.json({ message: 'Revisa la consola/logs del servidor para obtener tu contraseña temporal.' });
+});
+
+app.post('/api/creator/change-password', (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.trim().length < 6) {
+    return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+  }
+  creatorPassHash = bcrypt.hashSync(newPassword.trim(), 10);
+  creatorMustChangePass = false;
+  res.json({ message: 'Contraseña del Creador actualizada correctamente.' });
+});
+
+app.get('/api/creator/admins', (req, res) => {
+  try {
+    const admins = db.prepare("SELECT id, name, email, role, must_change_password FROM users WHERE role = 'admin'").all();
+    res.json(admins);
+  } catch (err) {
+    res.status(500).json({ error: 'Error cargando administradores.' });
+  }
+});
+
+app.post('/api/creator/setup-admin', (req, res) => {
+  const { name, email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Ingresa correo y contraseña para el Administrador.' });
+
+  try {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = (name || 'Administrador').trim();
+    const hashedPassword = bcrypt.hashSync(password.trim(), 10);
+    const existingAdmin = db.prepare("SELECT * FROM users WHERE email = ?").get(cleanEmail);
+
+    if (existingAdmin) {
+      db.prepare("UPDATE users SET name = ?, password = ?, role = 'admin', must_change_password = 1 WHERE id = ?").run(cleanName, hashedPassword, existingAdmin.id);
+      res.json({ message: `Cuenta de Administrador actualizada correctamente para ${cleanEmail}` });
+    } else {
+      db.prepare("INSERT INTO users (name, email, password, role, balance, must_change_password) VALUES (?, ?, ?, 'admin', 0.0, 1)").run(cleanName, cleanEmail, hashedPassword);
+      res.json({ message: `Nuevo Administrador registrado exitosamente: ${cleanEmail}` });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Error al configurar Administrador: ' + err.message });
+  }
+});
+
+app.delete('/api/creator/delete-admin/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    const target = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'admin'").get(id);
+    if (!target) return res.status(404).json({ error: 'Administrador no encontrado.' });
+
+    const deleteTransaction = db.transaction(() => {
+      db.prepare('UPDATE stock SET assigned_to_user_id = NULL WHERE assigned_to_user_id = ?').run(id);
+      db.prepare('DELETE FROM support_tickets WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    });
+    deleteTransaction();
+    res.json({ message: `Administrador ${target.email} eliminado correctamente.` });
+  } catch (err) {
+    res.status(500).json({ error: 'Error eliminando administrador: ' + err.message });
+  }
+});
+
 // CONFIGURACIÓN DE BRANDING Y SETTINGS
 app.get('/api/settings', (req, res) => {
   try {
@@ -236,7 +321,7 @@ app.post('/api/admin/update-name', (req, res) => {
   }
 });
 
-// RESET MANUAL POR PARTE DEL ADMIN HACIA UN REVENDEDOR (NO MANDA CORREO AUTOMÁTICO)
+// RESET MANUAL POR PARTE DEL ADMIN HACIA UN REVENDEDOR
 app.post('/api/admin/reset-password', (req, res) => {
   try {
     const { userId, tempPassword } = req.body;
@@ -252,7 +337,7 @@ app.post('/api/admin/reset-password', (req, res) => {
   }
 });
 
-// RECUPERACIÓN DE CONTRASEÑA SÓLO Y EXCLUSIVAMENTE PARA ADMINISTRADORES
+// RECUPERACIÓN DE CONTRASEÑA EXCLUSIVA PARA ADMINS
 app.post('/api/admin/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -261,7 +346,6 @@ app.post('/api/admin/forgot-password', async (req, res) => {
 
     const genericMsg = "Revisa tu bandeja de entrada o carpeta de spam.";
     
-    // VERIFICACIÓN ESTRICTA: SOLO ROL ADMIN
     const adminUser = db.prepare("SELECT * FROM users WHERE email = ? AND role = 'admin'").get(cleanEmail);
     if (!adminUser) return res.json({ message: genericMsg });
 
@@ -269,7 +353,6 @@ app.post('/api/admin/forgot-password', async (req, res) => {
     const hashedPassword = bcrypt.hashSync(tempPassword, 10);
     db.prepare('UPDATE users SET password = ?, must_change_password = 1 WHERE id = ?').run(hashedPassword, adminUser.id);
 
-    // MANDA CORREO ÚNICAMENTE SI ES ADMINISTRADOR
     sendAdminRecoveryEmail(cleanEmail, tempPassword);
 
     res.json({ message: genericMsg });
