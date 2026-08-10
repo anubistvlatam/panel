@@ -24,8 +24,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || '', // Tu correo Gmail
-    pass: process.env.EMAIL_PASS || ''  // Tu contraseña de aplicación de 16 caracteres
+    user: process.env.EMAIL_USER || 'tanubistv@gmail.com', // Tu correo Gmail
+    pass: process.env.EMAIL_PASS || 'gwobjinhmeesloou'  // Tu contraseña de aplicación de 16 caracteres
   }
 });
 
