@@ -8,10 +8,14 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const db = require('./database');
 
 const app = express();
+
+// AVISO RATE-LIMIT RENDER
+app.set('trust proxy', 1);
+
 const JWT_SECRET = process.env.JWT_SECRET || 'Secret_Key_Default_Anubis_2026';
 
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -20,46 +24,34 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// CONFIGURACIÓN DE NODEMAILER PARA ENVÍO DE CORREOS EXCLUSIVO DE ADMINS
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // Usa SSL directo
-  auth: {
-    user: process.env.EMAIL_USER || 'tanubistv@gmail.com',
-    pass: process.env.EMAIL_PASS || 'gwobjinhmeesloou'
-  }
-});
+// CONFIGURACIÓN DE RESEND PARA ENVÍO DE CORREOS EXCLUSIVO DE ADMINS
+const resendApiKey = process.env.RESEND_API_KEY || '';
+const resend = new Resend(resendApiKey);
+
 async function sendAdminRecoveryEmail(toEmail, tempPassword) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log(`[LOG RECUPERACIÓN ADMIN] Sin variables SMTP. Temp Pass para ${toEmail}: ${tempPassword}`);
-    return;
-  }
-
-  const mailOptions = {
-    from: `"Soporte Cpanel Admin" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: '🔑 Recuperación de Contraseña de Administrador',
-    html: `
-      <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #f59e0b;">Recuperación de Administrador</h2>
-        <p>Has solicitado restablecer tu acceso como <strong>Administrador</strong> del panel.</p>
-        <p>Tu contraseña temporal de acceso es:</p>
-        <div style="background-color: #1e293b; padding: 15px; font-size: 22px; font-weight: bold; color: #10b981; letter-spacing: 2px; text-align: center; border-radius: 8px; margin: 15px 0;">
-          ${tempPassword}
-        </div>
-        <p>Ingresa al panel con esta clave temporal y el sistema te pedirá definir tu nueva contraseña.</p>
-        <hr style="border-color: #334155; margin-top: 20px;">
-        <small style="color: #94a3b8;">Si no solicitaste este cambio, contacta inmediatamente a soporte.</small>
-      </div>
-    `
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`[CORREO ENVIADO A ADMIN] Clave temporal enviada a: ${toEmail}`);
+    const data = await resend.emails.send({
+      from: 'Cpanel Admin <onboarding@resend.dev>',
+      to: [toEmail],
+      subject: '🔑 Recuperación de Contraseña de Administrador',
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #f59e0b;">Recuperación de Administrador</h2>
+          <p>Has solicitado restablecer tu acceso como <strong>Administrador</strong> del panel.</p>
+          <p>Tu contraseña temporal de acceso es:</p>
+          <div style="background-color: #1e293b; padding: 15px; font-size: 22px; font-weight: bold; color: #10b981; letter-spacing: 2px; text-align: center; border-radius: 8px; margin: 15px 0;">
+            ${tempPassword}
+          </div>
+          <p>Ingresa al panel con esta clave temporal y el sistema te pedirá definir tu nueva contraseña.</p>
+          <hr style="border-color: #334155; margin-top: 20px;">
+          <small style="color: #94a3b8;">Si no solicitaste este cambio, contacta inmediatamente a soporte.</small>
+        </div>
+      `
+    });
+
+    console.log(`[CORREO ENVIADO A ADMIN VÍA RESEND]`, data);
   } catch (err) {
-    console.error(`[ERROR ENVIANDO CORREO ADMIN] ${err.message}`);
+    console.error(`[ERROR ENVIANDO CORREO ADMIN RESEND] ${err.message}`);
   }
 }
 
