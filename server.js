@@ -12,7 +12,6 @@ const db = require('./database');
 
 const app = express();
 
-// AVISO RATE-LIMIT RENDER
 app.set('trust proxy', 1);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'Secret_Key_Default_Anubis_2026';
@@ -201,7 +200,7 @@ app.delete('/api/creator/delete-admin/:id', (req, res) => {
   }
 });
 
-// CONFIGURACIÓN DE BRANDING Y SETTINGS
+// CONFIGURACIÓN DE BRANDING, SETTINGS Y TÉRMINOS Y CONDICIONES
 app.get('/api/settings', (req, res) => {
   try {
     cleanupOldRechargeRequests();
@@ -214,47 +213,57 @@ app.get('/api/settings', (req, res) => {
   }
 });
 
-app.post('/api/admin/settings', (req, res) => {
-  upload.single('brandLogoFile')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ error: 'Error al subir la imagen: ' + err.message });
+app.post('/api/admin/settings', upload.fields([
+  { name: 'brandLogoFile', maxCount: 1 },
+  { name: 'termsImageFile', maxCount: 1 }
+]), (req, res) => {
+  try {
+    const { 
+      brandName, brandLogoUrl, brandLogoSize, brandDisplayMode, deleteLogo, 
+      bankName, bankHolder, bankAccount, bankConcept, paymentGatewayUrl,
+      termsText, termsImageUrl
+    } = req.body;
+    
+    const saveSetting = db.prepare(`
+      INSERT INTO settings (key, value) VALUES (?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `);
+
+    if (brandName) saveSetting.run('brand_name', brandName.trim());
+    if (bankName !== undefined) saveSetting.run('bank_name', bankName.trim());
+    if (bankHolder !== undefined) saveSetting.run('bank_holder', bankHolder.trim());
+    if (bankAccount !== undefined) saveSetting.run('bank_account', bankAccount.trim());
+    if (bankConcept !== undefined) saveSetting.run('bank_concept', bankConcept.trim());
+    if (paymentGatewayUrl !== undefined) saveSetting.run('payment_gateway_url', paymentGatewayUrl.trim());
+    if (brandLogoSize !== undefined) saveSetting.run('brand_logo_size', brandLogoSize.trim());
+    if (brandDisplayMode !== undefined) saveSetting.run('brand_display_mode', brandDisplayMode.trim());
+
+    // TÉRMINOS Y CONDICIONES
+    if (termsText !== undefined) saveSetting.run('terms_text', termsText.trim());
+
+    if (req.files && req.files['termsImageFile']) {
+      saveSetting.run('terms_image', '/uploads/' + req.files['termsImageFile'][0].filename);
+    } else if (termsImageUrl !== undefined && termsImageUrl.trim() !== '') {
+      saveSetting.run('terms_image', termsImageUrl.trim());
     }
 
-    try {
-      const { brandName, brandLogoUrl, brandLogoSize, brandDisplayMode, deleteLogo, bankName, bankHolder, bankAccount, bankConcept, paymentGatewayUrl } = req.body;
-      
-      const saveSetting = db.prepare(`
-        INSERT INTO settings (key, value) VALUES (?, ?)
-        ON CONFLICT(key) DO UPDATE SET value = excluded.value
-      `);
-
-      if (brandName) saveSetting.run('brand_name', brandName.trim());
-      if (bankName !== undefined) saveSetting.run('bank_name', bankName.trim());
-      if (bankHolder !== undefined) saveSetting.run('bank_holder', bankHolder.trim());
-      if (bankAccount !== undefined) saveSetting.run('bank_account', bankAccount.trim());
-      if (bankConcept !== undefined) saveSetting.run('bank_concept', bankConcept.trim());
-      if (paymentGatewayUrl !== undefined) saveSetting.run('payment_gateway_url', paymentGatewayUrl.trim());
-      if (brandLogoSize !== undefined) saveSetting.run('brand_logo_size', brandLogoSize.trim());
-      if (brandDisplayMode !== undefined) saveSetting.run('brand_display_mode', brandDisplayMode.trim());
-
-      if (deleteLogo === 'true') {
-        saveSetting.run('brand_logo', '');
-      } else {
-        let logoVal = (brandLogoUrl || '').trim();
-        if (req.file) {
-          logoVal = '/uploads/' + req.file.filename;
-        }
-        if (logoVal !== '') {
-          saveSetting.run('brand_logo', logoVal);
-        }
+    if (deleteLogo === 'true') {
+      saveSetting.run('brand_logo', '');
+    } else {
+      let logoVal = (brandLogoUrl || '').trim();
+      if (req.files && req.files['brandLogoFile']) {
+        logoVal = '/uploads/' + req.files['brandLogoFile'][0].filename;
       }
-
-      res.json({ message: 'Configuración actualizada correctamente.' });
-    } catch (dbErr) {
-      console.error("Error guardando settings:", dbErr);
-      res.status(500).json({ error: 'Error en la base de datos: ' + dbErr.message });
+      if (logoVal !== '') {
+        saveSetting.run('brand_logo', logoVal);
+      }
     }
-  });
+
+    res.json({ message: 'Configuración y Términos actualizados correctamente.' });
+  } catch (dbErr) {
+    console.error("Error guardando settings:", dbErr);
+    res.status(500).json({ error: 'Error en la base de datos: ' + dbErr.message });
+  }
 });
 
 // LOGIN GENERAL
@@ -325,7 +334,6 @@ app.post('/api/admin/update-name', (req, res) => {
   }
 });
 
-// RESET MANUAL POR PARTE DEL ADMIN HACIA UN REVENDEDOR
 app.post('/api/admin/reset-password', (req, res) => {
   try {
     const { userId, tempPassword } = req.body;
@@ -341,7 +349,6 @@ app.post('/api/admin/reset-password', (req, res) => {
   }
 });
 
-// RECUPERACIÓN DE CONTRASEÑA EXCLUSIVA PARA ADMINS
 app.post('/api/admin/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -365,381 +372,7 @@ app.post('/api/admin/forgot-password', async (req, res) => {
   }
 });
 
-// DASHBOARD
-app.get('/api/reseller/dashboard/:userId', (req, res) => {
-  const { userId } = req.params;
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  const sales = db.prepare(`
-    SELECT s.*, p.price as cost_price
-    FROM stock s
-    JOIN products p ON s.product_id = p.id
-    WHERE s.assigned_to_user_id = ? AND s.status = 'sold'
-  `).all(userId);
-
-  let todaySalesCount = 0, todayCostTotal = 0, todayRevenueTotal = 0, totalProfit = 0;
-
-  sales.forEach(s => {
-    const sDate = (s.purchase_date || '').split('T')[0];
-    const salePrice = s.reseller_sale_price || 0;
-    const profit = salePrice > 0 ? (salePrice - s.cost_price) : 0;
-    totalProfit += profit;
-
-    if (sDate === todayStr) {
-      todaySalesCount++;
-      todayCostTotal += s.cost_price;
-      todayRevenueTotal += salePrice;
-    }
-  });
-
-  res.json({
-    todaySalesCount,
-    todayCostTotal,
-    todayRevenueTotal,
-    todayProfit: todayRevenueTotal > 0 ? (todayRevenueTotal - todayCostTotal) : 0,
-    totalProfit,
-    totalOrders: sales.length
-  });
-});
-
-app.post('/api/reseller/set-sale-price', (req, res) => {
-  const { stockId, salePrice } = req.body;
-  const numPrice = parseFloat(salePrice);
-  if (isNaN(numPrice) || numPrice < 0) return res.status(400).json({ error: 'Monto de venta inválido.' });
-
-  db.prepare('UPDATE stock SET reseller_sale_price = ? WHERE id = ?').run(numPrice, stockId);
-  res.json({ message: 'Precio de venta registrado correctamente.' });
-});
-
-app.get('/api/admin/sales-report', (req, res) => {
-  const sales = db.prepare(`
-    SELECT s.*, p.price as sale_amount, p.name as product_name, u.email as reseller_email
-    FROM stock s
-    JOIN products p ON s.product_id = p.id
-    LEFT JOIN users u ON s.assigned_to_user_id = u.id
-    WHERE s.status = 'sold'
-    ORDER BY s.purchase_date DESC
-  `).all();
-
-  let totalAdminSalesAmount = 0, todayAmount = 0, weekAmount = 0, monthAmount = 0;
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  const startOfMonthStr = now.toISOString().slice(0, 7);
-  const salesByDay = {};
-
-  sales.forEach(s => {
-    const amount = s.sale_amount || 0;
-    totalAdminSalesAmount += amount;
-    const dateObj = new Date(s.purchase_date || Date.now());
-    const dateStr = dateObj.toISOString().split('T')[0];
-    salesByDay[dateStr] = (salesByDay[dateStr] || 0) + amount;
-
-    if (dateStr === todayStr) todayAmount += amount;
-    if (dateObj >= startOfWeek) weekAmount += amount;
-    if (dateStr.startsWith(startOfMonthStr)) monthAmount += amount;
-  });
-
-  res.json({ totalAdminSalesAmount, todayAmount, weekAmount, monthAmount, salesByDay, salesList: sales });
-});
-
-app.get('/api/admin/grouped-inventory', (req, res) => {
-  const accounts = db.prepare(`
-    SELECT platform_name, email_account, password_account,
-      COUNT(id) as total_profiles,
-      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_profiles,
-      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_profiles
-    FROM stock
-    GROUP BY platform_name, email_account
-    ORDER BY platform_name ASC, email_account ASC
-  `).all();
-  res.json(accounts);
-});
-
-app.get('/api/admin/metrics', (req, res) => {
-  const resellerRanking = db.prepare(`
-    SELECT u.id, u.name, u.email, u.balance, 
-           COUNT(s.id) as total_purchases, 
-           COALESCE(SUM(p.price), 0) as total_spent
-    FROM users u
-    LEFT JOIN stock s ON u.id = s.assigned_to_user_id AND s.status = 'sold'
-    LEFT JOIN products p ON s.product_id = p.id
-    WHERE u.role = 'reseller'
-    GROUP BY u.id
-    ORDER BY total_spent DESC
-  `).all();
-
-  const allStock = db.prepare(`
-    SELECT s.*, p.name as product_name, p.type as product_type, u.email as assigned_user
-    FROM stock s
-    JOIN products p ON s.product_id = p.id
-    LEFT JOIN users u ON s.assigned_to_user_id = u.id
-    ORDER BY s.id DESC
-  `).all();
-
-  res.json({ resellerRanking, allStock });
-});
-
-app.post('/api/admin/manage-balance', (req, res) => {
-  try {
-    const { adminPassword, targetEmail, amount, action } = req.body;
-    const numAmount = parseFloat(amount);
-    const cleanTargetEmail = (targetEmail || '').trim().toLowerCase();
-
-    const admin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();
-    if (!admin || !bcrypt.compareSync(adminPassword, admin.password)) {
-      return res.status(401).json({ error: 'Contraseña de Administrador incorrecta.' });
-    }
-
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return res.status(400).json({ error: 'Ingresa un monto válido mayor a 0.' });
-    }
-
-    const targetUser = db.prepare('SELECT * FROM users WHERE email = ?').get(cleanTargetEmail);
-    if (!targetUser) return res.status(404).json({ error: 'El usuario revendedor no fue encontrado.' });
-
-    if (action === 'deduct') {
-      if (targetUser.balance < numAmount) {
-        return res.status(400).json({ error: `El usuario solo cuenta con $${targetUser.balance.toFixed(2)} MXN.` });
-      }
-      db.prepare('UPDATE users SET balance = balance - ? WHERE id = ?').run(numAmount, targetUser.id);
-      return res.json({ message: `Se descontaron $${numAmount.toFixed(2)} MXN a ${cleanTargetEmail}` });
-    } else {
-      db.prepare('UPDATE users SET balance = balance + ? WHERE id = ?').run(numAmount, targetUser.id);
-      return res.json({ message: `Se abonaron $${numAmount.toFixed(2)} MXN a ${cleanTargetEmail}` });
-    }
-  } catch (err) {
-    res.status(500).json({ error: 'Error en el servidor: ' + err.message });
-  }
-});
-
-app.post('/api/admin/delete-user', (req, res) => {
-  try {
-    const { adminPassword, userId } = req.body;
-    const admin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();
-    if (!admin || !bcrypt.compareSync(adminPassword, admin.password)) {
-      return res.status(401).json({ error: 'Contraseña de Administrador incorrecta.' });
-    }
-
-    const targetUser = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-    if (!targetUser) return res.status(404).json({ error: 'El usuario no existe.' });
-    if (targetUser.role === 'admin') return res.status(403).json({ error: 'No se permite eliminar al Administrador.' });
-
-    const deleteTransaction = db.transaction(() => {
-      db.prepare('UPDATE stock SET assigned_to_user_id = NULL WHERE assigned_to_user_id = ?').run(userId);
-      db.prepare('DELETE FROM support_tickets WHERE user_id = ?').run(userId);
-      db.prepare('DELETE FROM recharge_requests WHERE user_id = ?').run(userId);
-      db.prepare('DELETE FROM users WHERE id = ?').run(userId);
-    });
-    deleteTransaction();
-
-    res.json({ message: `El usuario ${targetUser.email} fue eliminado correctamente.` });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar usuario: ' + err.message });
-  }
-});
-
-// RECARGAS Y COMPROBANTES
-app.post('/api/reseller/recharge', upload.single('receiptImage'), (req, res) => {
-  try {
-    const { userId, amount } = req.body;
-    const numAmount = parseFloat(amount);
-
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return res.status(400).json({ error: 'Ingresa un monto válido.' });
-    }
-
-    let receiptUrl = '';
-    if (req.file) {
-      receiptUrl = '/uploads/' + req.file.filename;
-    }
-
-    db.prepare(`
-      INSERT INTO recharge_requests (user_id, amount, receipt_url, status)
-      VALUES (?, ?, ?, 'pending')
-    `).run(userId, numAmount, receiptUrl);
-
-    res.json({ message: 'Solicitud de recarga enviada con éxito. El administrador la revisará en breve.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error enviando solicitud de recarga: ' + err.message });
-  }
-});
-
-app.get('/api/admin/recharge-requests', (req, res) => {
-  cleanupOldRechargeRequests();
-  const requests = db.prepare(`
-    SELECT r.*, u.name as user_name, u.email as user_email
-    FROM recharge_requests r
-    JOIN users u ON r.user_id = u.id
-    ORDER BY r.created_at DESC
-  `).all();
-  res.json(requests);
-});
-
-app.post('/api/admin/recharge-requests/process', (req, res) => {
-  try {
-    const { adminPassword, requestId, action } = req.body;
-
-    const admin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();
-    if (!admin || !bcrypt.compareSync(adminPassword, admin.password)) {
-      return res.status(401).json({ error: 'Contraseña de Administrador incorrecta. Autorización denegada.' });
-    }
-
-    const recharge = db.prepare('SELECT * FROM recharge_requests WHERE id = ?').get(requestId);
-
-    if (!recharge || recharge.status !== 'pending') {
-      return res.status(400).json({ error: 'La solicitud no está pendiente.' });
-    }
-
-    if (action === 'approve') {
-      const processTx = db.transaction(() => {
-        db.prepare('UPDATE users SET balance = balance + ? WHERE id = ?').run(recharge.amount, recharge.user_id);
-        db.prepare("UPDATE recharge_requests SET status = 'approved' WHERE id = ?").run(requestId);
-      });
-      processTx();
-      res.json({ message: `Recarga aprobada. Se han abonado $${recharge.amount.toFixed(2)} MXN al revendedor.` });
-    } else {
-      db.prepare("UPDATE recharge_requests SET status = 'rejected' WHERE id = ?").run(requestId);
-      res.json({ message: 'Solicitud de recarga rechazada.' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: 'Error procesando la solicitud: ' + err.message });
-  }
-});
-
-// TICKETS Y SOPORTE
-app.post('/api/support/tickets', upload.single('ticketImage'), (req, res) => {
-  try {
-    const { userId, orderId, subject, comment } = req.body;
-    if (!subject || !comment) return res.status(400).json({ error: 'El asunto y el comentario son obligatorios.' });
-
-    let imageUrl = '';
-    if (req.file) imageUrl = '/uploads/' + req.file.filename;
-
-    const isoDate = new Date().toISOString();
-
-    db.prepare(`
-      INSERT INTO support_tickets (user_id, order_id, subject, comment, image_url, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, 'open', ?, ?)
-    `).run(userId, orderId || null, subject.trim(), comment.trim(), imageUrl, isoDate, isoDate);
-
-    res.json({ message: 'Ticket de soporte enviado correctamente.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error enviando el ticket: ' + err.message });
-  }
-});
-
-app.get('/api/support/tickets', (req, res) => {
-  const tickets = db.prepare(`
-    SELECT t.*, u.name as user_name, u.email as user_email
-    FROM support_tickets t
-    JOIN users u ON t.user_id = u.id
-    ORDER BY t.created_at DESC
-  `).all();
-  res.json(tickets);
-});
-
-app.get('/api/support/tickets/:userId', (req, res) => {
-  const { userId } = req.params;
-  const tickets = db.prepare(`
-    SELECT t.*, u.name as user_name, u.email as user_email
-    FROM support_tickets t
-    JOIN users u ON t.user_id = u.id
-    WHERE t.user_id = ?
-    ORDER BY t.created_at DESC
-  `).all(userId);
-  res.json(tickets);
-});
-
-app.post('/api/admin/support/update-status', upload.single('adminTicketImage'), (req, res) => {
-  try {
-    const { ticketId, status, adminComment } = req.body;
-    if (!ticketId || !status) return res.status(400).json({ error: 'ID de ticket y estado son requeridos.' });
-
-    let adminImageUrl = null;
-    if (req.file) adminImageUrl = '/uploads/' + req.file.filename;
-
-    const isoNow = new Date().toISOString();
-
-    if (adminImageUrl) {
-      db.prepare(`
-        UPDATE support_tickets 
-        SET status = ?, admin_comment = ?, admin_image_url = ?, updated_at = ? 
-        WHERE id = ?
-      `).run(status, adminComment || '', adminImageUrl, isoNow, ticketId);
-    } else {
-      db.prepare(`
-        UPDATE support_tickets 
-        SET status = ?, admin_comment = COALESCE(?, admin_comment), updated_at = ? 
-        WHERE id = ?
-      `).run(status, adminComment || null, isoNow, ticketId);
-    }
-
-    res.json({ message: 'Estado del ticket actualizado.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error actualizando ticket: ' + err.message });
-  }
-});
-
-app.delete('/api/admin/support/tickets/:id', (req, res) => {
-  const { id } = req.params;
-  try {
-    const ticket = db.prepare('SELECT * FROM support_tickets WHERE id = ?').get(id);
-    if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado.' });
-
-    if (ticket.image_url) {
-      const fullPath = path.join(__dirname, ticket.image_url);
-      if (fs.existsSync(fullPath)) {
-        try { fs.unlinkSync(fullPath); } catch (e) {}
-      }
-    }
-
-    if (ticket.admin_image_url) {
-      const fullAdminPath = path.join(__dirname, ticket.admin_image_url);
-      if (fs.existsSync(fullAdminPath)) {
-        try { fs.unlinkSync(fullAdminPath); } catch (e) {}
-      }
-    }
-
-    db.prepare('DELETE FROM support_tickets WHERE id = ?').run(id);
-    res.json({ message: 'Ticket de soporte e imágenes eliminados correctamente.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar ticket: ' + err.message });
-  }
-});
-
-// ALERTAS DE SOPORTE
-app.get('/api/support/alerts/admin', (req, res) => {
-  cleanupOldRechargeRequests();
-  const openTickets = db.prepare("SELECT COUNT(id) as count FROM support_tickets WHERE status = 'open'").get();
-  const pendingRecharges = db.prepare("SELECT COUNT(id) as count FROM recharge_requests WHERE status = 'pending'").get();
-
-  res.json({
-    openCount: openTickets ? openTickets.count : 0,
-    reviewCount: 0,
-    pendingRechargesCount: pendingRecharges ? pendingRecharges.count : 0
-  });
-});
-
-app.get('/api/support/alerts/:userId', (req, res) => {
-  const { userId } = req.params;
-  const activeTickets = db.prepare(`
-    SELECT COUNT(id) as count 
-    FROM support_tickets 
-    WHERE user_id = ? AND status IN ('review', 'resolved')
-  `).get(userId);
-
-  const lastUpdated = db.prepare("SELECT MAX(updated_at) as last_time FROM support_tickets WHERE user_id = ?").get(userId);
-
-  res.json({
-    reviewCount: activeTickets ? activeTickets.count : 0,
-    resolvedCount: 0,
-    lastUpdatedTime: lastUpdated ? lastUpdated.last_time : null
-  });
-});
-
-// CATÁLOGO Y COMPRAS
+// CATÁLOGO Y EDITAR PRODUCTO (ADMIN)
 app.get('/api/products', (req, res) => {
   const products = db.prepare(`
     SELECT p.*, COUNT(s.id) as stock_count 
@@ -768,7 +401,6 @@ app.post('/api/admin/products', upload.single('productImageFile'), (req, res) =>
   }
 });
 
-// EDITAR PRODUCTO (NUEVO ENDPOINT EXCLUSIVO ADMIN)
 app.put('/api/admin/products/:id', upload.single('productImageFile'), (req, res) => {
   try {
     const { id } = req.params;
@@ -857,6 +489,7 @@ app.post('/api/buy-cart', (req, res) => {
   }
 });
 
+// PEDIDOS CON FECHAS DE COMPRA Y VENCIMIENTO FORMATEADAS (DD/MM/YYYY)
 app.get('/api/user/orders/:userId', (req, res) => {
   const { userId } = req.params;
   const orders = db.prepare(`
@@ -868,6 +501,14 @@ app.get('/api/user/orders/:userId', (req, res) => {
   `).all(userId);
 
   const now = new Date();
+
+  function formatDate(d) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   const result = orders.map(o => {
     const pDate = new Date(o.purchase_date || Date.now());
     const expDate = new Date(pDate.getTime() + (30 * 24 * 60 * 60 * 1000));
@@ -881,6 +522,8 @@ app.get('/api/user/orders/:userId', (req, res) => {
 
     return {
       ...o,
+      purchase_date_formatted: formatDate(pDate),
+      expiration_date_formatted: formatDate(expDate),
       days_left: daysLeft > 0 ? daysLeft : 0,
       is_near_expiration: daysLeft <= 3,
       combo_parsed: comboParsed
