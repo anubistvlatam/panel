@@ -3,270 +3,2326 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anubis Panel - Cpanel Admin</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; padding-bottom: 50px; }
-    
-    header { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-    .brand { font-size: 22px; font-weight: bold; color: #f59e0b; display: flex; align-items: center; gap: 10px; }
-    .brand img { max-height: 40px; border-radius: 6px; }
-    
-    nav { display: flex; gap: 15px; background: #1e293b; padding: 10px 30px; border-bottom: 1px solid #334155; flex-wrap: wrap; }
-    nav button { background: transparent; border: none; color: #94a3b8; font-size: 14px; font-weight: 600; padding: 8px 16px; cursor: pointer; border-radius: 6px; transition: 0.2s; }
-    nav button:hover, nav button.active { background: #334155; color: #f59e0b; }
-    
-    .container { padding: 30px; max-width: 1200px; margin: 0 auto; }
-    .section { display: none; }
-    .section.active { display: block; }
-    
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-    .card img { width: 100%; height: 160px; object-fit: cover; background: #0f172a; }
-    .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .card-title { font-size: 16px; font-weight: bold; color: #f8fafc; margin-bottom: 5px; }
-    .card-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; background: #f59e0b; color: #0f172a; }
-    .card-price { font-size: 20px; font-weight: bold; color: #10b981; margin-top: 10px; }
-    
-    .btn-group { display: flex; gap: 8px; margin-top: 15px; }
-    .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
-    .btn-primary { background: #3b82f6; color: white; }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #10b981; color: white; }
-    .btn-success:hover { background: #059669; }
-    
-    /* MODAL */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; }
-    .modal-content { background: #1e293b; color: #ffffff; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .modal-title { margin-top: 0; color: #f59e0b; font-size: 20px; margin-bottom: 15px; }
-    
-    label { display: block; margin-top: 12px; font-size: 13px; color: #cbd5e1; }
-    input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-top: 4px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 6px; outline: none; }
-    input[type="file"] { margin-top: 6px; color: #cbd5e1; }
-    
-    .divider { text-align: center; margin: 15px 0; color: #64748b; font-size: 12px; font-weight: bold; }
-    
-    .user-info { display: flex; align-items: center; gap: 15px; }
-    .balance-badge { background: #0f172a; padding: 6px 12px; border-radius: 20px; border: 1px solid #334155; font-size: 13px; color: #10b981; font-weight: bold; }
-  </style>
+  <title id="page-title">CPANEL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-950 text-white min-h-screen font-sans">
 
-  <header>
-    <div class="brand" id="brandContainer">
-      <span id="brandName">ANUBIS PANEL</span>
-    </div>
-    <div class="user-info">
-      <span class="balance-badge" id="userBalance">Saldo: $0.00 MXN</span>
-      <button onclick="logout()" class="btn btn-danger">Cerrar Sesión</button>
-    </div>
-  </header>
+  <!-- BANNER DE TOAST CON Z-INDEX CORRECTO -->
+  <div id="balance-toast" class="hidden fixed top-20 right-5 z-[100] p-4 rounded-xl shadow-2xl border text-sm font-bold flex items-center gap-3 transition-all duration-300"></div>
 
-  <nav>
-    <button class="active" onclick="showSection('catalog')">Tienda / Catálogo</button>
-    <button onclick="showSection('orders')">Mis Pedidos</button>
-    <button onclick="showSection('recharge')">Recargar Saldo</button>
-    <button onclick="showSection('support')">Soporte</button>
-    <button id="adminTab" style="display:none;" onclick="showSection('admin')">Panel Admin</button>
-  </nav>
+  <!-- VISTA LOGIN -->
+  <div id="view-login" class="flex min-h-screen items-center justify-center p-4">
+    <div class="grid w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 md:grid-cols-2 shadow-2xl">
+      <div class="flex flex-col justify-between bg-slate-950 p-8 border-r border-slate-800">
+        <div>
+          <!-- 2. BRANDING EN LA TARJETA DE LOGIN -->
+          <div id="brand-login-logo-container" class="mb-4"></div>
+          <h1 id="brand-login-title" class="text-3xl font-extrabold tracking-wider text-amber-500">CPANEL</h1>
+          <p class="mt-6 text-xl font-medium text-slate-200">La energía del éxito digital</p>
+          <p class="mt-2 text-sm text-slate-400">Accede a tu cuenta para continuar.</p>
+        </div>
+        <div class="mt-8 text-xs text-slate-500">CPANEL v3.0</div>
+      </div>
 
-  <div class="container">
-    <!-- SECCIÓN CATÁLOGO -->
-    <div id="catalog" class="section active">
-      <h2 style="color: #f8fafc; margin-bottom: 10px;">Catálogo Disponible</h2>
-      <div class="card-grid" id="productGrid"></div>
-    </div>
-
-    <!-- SECCIÓN MIS PEDIDOS -->
-    <div id="orders" class="section">
-      <h2>Mis Pedidos</h2>
-      <div id="ordersList" style="margin-top: 20px;"></div>
-    </div>
-
-    <!-- SECCIÓN RECARGA -->
-    <div id="recharge" class="section">
-      <h2>Recargar Saldo</h2>
-      <p style="color: #94a3b8; margin-top: 5px;">Sube tu comprobante de transferencia para abonar saldo a tu cuenta.</p>
-    </div>
-
-    <!-- SECCIÓN SOPORTE -->
-    <div id="support" class="section">
-      <h2>Soporte Técnico</h2>
-      <p style="color: #94a3b8; margin-top: 5px;">Genera un ticket de soporte si tienes algún problema con tus cuentas.</p>
-    </div>
-
-    <!-- SECCIÓN ADMIN -->
-    <div id="admin" class="section">
-      <h2>Administración del Sistema</h2>
-      <p style="color: #94a3b8; margin-top: 5px;">Gestión de usuarios, inventario y solicitudes.</p>
+      <div class="p-8 flex flex-col justify-center">
+        <h2 class="text-2xl font-bold text-slate-100 mb-6">Accede a tu cuenta</h2>
+        <form id="form-login" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Usuario</label>
+            <input type="text" id="login-email" placeholder="correo@correo.com" required class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold uppercase text-slate-400">Contraseña</label>
+              <button type="button" onclick="toggleForgotModal()" class="text-xs text-amber-500 hover:underline">¿Olvidaste tu contraseña?</button>
+            </div>
+            <input type="password" id="login-password" placeholder="••••••••" required class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-amber-600 py-2.5 font-semibold text-white hover:bg-amber-500 transition">ENTRAR</button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL DE EDICIÓN DE PRODUCTO (PARA ADMINISTRADOR) -->
-  <div id="editProductModal" class="modal">
-    <div class="modal-content">
-      <h3 class="modal-title">✏️ Editar Producto del Catálogo</h3>
-      
-      <input type="hidden" id="editProductId">
-      
-      <label>Nombre del Producto:</label>
-      <input type="text" id="editProductName">
-
-      <label>Tipo de Producto:</label>
-      <select id="editProductType">
-        <option value="PERFIL">PERFIL</option>
-        <option value="CUENTA">CUENTA</option>
-        <option value="COMBO">COMBO</option>
-      </select>
-
-      <label>Precio / Costo ($ MXN):</label>
-      <input type="number" step="0.01" id="editProductPrice">
-
-      <label>Cambiar Imagen por URL Web:</label>
-      <input type="text" id="editProductUrl" placeholder="https://ejemplo.com/imagen.png">
-
-      <div class="divider">— O SUBIR DESDE LA PC —</div>
-
-      <label>Subir nueva imagen desde PC:</label>
-      <input type="file" id="editProductFile" accept="image/*">
-
-      <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
-        <button onclick="closeEditProductModal()" class="btn" style="background: #475569; color: #fff;">Cancelar</button>
-        <button onclick="saveProductChanges()" class="btn btn-success">Guardar Cambios</button>
+  <!-- MODAL RECUPERACIÓN SECURE -->
+  <div id="modal-forgot" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-amber-500">Recuperación de Cuenta</h3>
+        <button onclick="toggleForgotModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-400">Ingresa tu correo registrado para generar una contraseña genérica temporal de acceso.</p>
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Correo Electrónico</label>
+          <input type="email" id="forgot-email" placeholder="correo@correo.com" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <button type="button" onclick="requestAdminReset()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-lg text-xs transition">
+          Generar Clave Genérica
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA CAMBIO OBLIGATORIO DE CONTRASEÑA -->
+  <div id="view-force-password" class="hidden flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl bg-slate-900 border border-amber-500/50 p-8 shadow-2xl space-y-4">
+      <h2 class="text-2xl font-bold text-amber-500">Actualiza tu Contraseña</h2>
+      <p class="text-xs text-slate-400">Es tu primer acceso o has ingresado con una clave temporal. Define tu nueva contraseña para continuar.</p>
+      <form id="form-change-pass" class="space-y-4 pt-2">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nueva Contraseña</label>
+          <input type="password" id="new-custom-pass" required placeholder="Mínimo 4 caracteres" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <button type="submit" class="w-full rounded-lg bg-amber-600 py-2.5 font-semibold text-white hover:bg-amber-500 transition">Guardar y Continuar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- VISTA PRINCIPAL CON BARRA SUPERIOR Y CABECERA DINÁMICA DE ALTURA -->
+  <div id="view-app" class="hidden min-h-screen flex-col">
+    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 backdrop-blur px-8 py-3 shadow-xl min-h-[70px]">
+      <div class="flex items-center gap-8">
+        <div class="flex items-center gap-3">
+          <div id="brand-logo-container" class="flex items-center justify-center"></div>
+          <h1 id="brand-header-title" class="text-2xl font-black text-amber-500">CPANEL</h1>
+        </div>
+        <nav class="flex gap-4 text-sm font-medium text-slate-400">
+          <button onclick="switchTab('store')" id="tab-btn-store" class="text-white border-b-2 border-amber-500 pb-1">Tienda</button>
+          <button onclick="switchTab('orders')" id="tab-btn-orders" class="hover:text-white pb-1">Mis Pedidos</button>
+          <button onclick="switchTab('recharge')" id="tab-btn-recharge" class="hover:text-white pb-1">Recargar Saldo</button>
+          <button onclick="switchTab('whatsapp')" id="tab-btn-whatsapp" class="hover:text-white pb-1">WhatsApp</button>
+          <button onclick="switchTab('terms')" id="tab-btn-terms" class="hover:text-white pb-1">Términos y Condiciones</button>
+          
+          <button onclick="switchTab('support')" id="tab-btn-support" class="relative hover:text-white pb-1 flex items-center gap-1.5">
+            Soporte
+            <span id="badge-support-open" class="hidden bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">0</span>
+            <span id="badge-support-review" class="hidden bg-amber-500 text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+
+          <button onclick="switchTab('admin-metrics')" id="tab-btn-admin-metrics" class="hidden hover:text-white pb-1">Reporte de Ventas</button>
+          <button onclick="switchTab('admin-inventory')" id="tab-btn-admin-inventory" class="hidden hover:text-white pb-1">Inventario por Cuentas</button>
+          <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button onclick="toggleCartModal()" class="relative rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-amber-400 hover:bg-slate-700">
+          🛒 Carrito (<span id="cart-count">0</span>)
+        </button>
+
+        <div id="balance-badge" class="rounded-lg bg-slate-800 border border-slate-700 px-4 py-1.5 text-sm font-semibold text-emerald-400">
+          Saldo: $<span id="user-balance">0.00</span> MXN
+        </div>
+
+        <div class="text-xs text-slate-400" id="user-email-display"></div>
+        <button onclick="logout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 px-3 py-1.5 rounded-lg transition font-semibold">
+          Cerrar Sesión
+        </button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-7xl mx-auto w-full space-y-8">
+
+      <!-- SALUDO PERSONALIZADO -->
+      <div id="greeting-banner" class="bg-gradient-to-r from-amber-600/20 to-slate-900 border border-amber-500/30 p-4 rounded-2xl flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-amber-400" id="greeting-text">¡Buen día!</h2>
+          <p class="text-xs text-slate-400">Bienvenido de vuelta a tu Panel.</p>
+        </div>
+      </div>
+
+      <!-- DASHBOARD RESELLER -->
+      <div id="reseller-dashboard-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 uppercase">Ventas Hoy</span>
+          <h3 class="text-2xl font-black text-white mt-1" id="dash-today-count">0</h3>
+          <p class="text-xs text-slate-500 mt-1">Unidades entregadas</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 uppercase">Inversión Hoy</span>
+          <h3 class="text-2xl font-black text-amber-400 mt-1">$<span id="dash-today-cost">0.00</span> MXN</h3>
+          <p class="text-xs text-slate-500 mt-1">Costo pagado al panel</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 uppercase">Ganancia Estimada Hoy</span>
+          <h3 class="text-2xl font-black text-emerald-400 mt-1">$<span id="dash-today-profit">0.00</span> MXN</h3>
+          <p class="text-xs text-slate-500 mt-1">Ventas finales - Costos</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 uppercase">Ganancia Histórica Total</span>
+          <h3 class="text-2xl font-black text-indigo-400 mt-1">$<span id="dash-total-profit">0.00</span> MXN</h3>
+          <p class="text-xs text-slate-500 mt-1">Ganancias registradas</p>
+        </div>
+      </div>
+
+      <!-- TIENDA -->
+      <div id="tab-store">
+        <h2 class="text-xl font-bold mb-6 text-slate-200">Catálogo Disponible</h2>
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+      </div>
+
+      <!-- MIS PEDIDOS -->
+      <div id="tab-orders" class="hidden space-y-6">
+        <h2 class="text-2xl font-bold text-amber-500">Mis Credenciales Adquiridas y Control de Ganancia</h2>
+        <div id="orders-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </div>
+
+      <!-- RECARGAR SALDO RESELLER -->
+      <div id="tab-recharge" class="hidden space-y-8 max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-amber-500">Recargar Saldo de Cuenta</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+            <h3 class="text-base font-bold text-amber-400 border-b border-slate-800 pb-2">🏦 Información de Depósito o Transferencia</h3>
+            <div id="bank-details-box" class="space-y-2 text-xs text-slate-300">
+              <p>Cargando datos de depósito...</p>
+            </div>
+            
+            <div id="payment-gateway-container" class="pt-3 hidden border-t border-slate-800">
+              <p class="text-xs text-slate-400 mb-2">O paga directo con Tarjeta (Mercado Pago / Clip):</p>
+              <a id="payment-gateway-link" href="#" target="_blank" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs text-center block transition">
+                💳 Pagar con Tarjeta (Mercado Pago / Clip)
+              </a>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+            <h3 class="text-base font-bold text-amber-400 border-b border-slate-800 pb-2">📤 Reportar Comprobante de Pago</h3>
+            <form id="form-report-recharge" class="space-y-3">
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Monto Depositado ($ MXN)</label>
+                <input type="number" step="0.01" id="recharge-report-amount" placeholder="Ej: 500.00" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Subir Comprobante (Ficha o Captura)</label>
+                <input type="file" id="recharge-report-file" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-500 cursor-pointer bg-slate-800 border border-slate-700 rounded-lg">
+              </div>
+
+              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition uppercase">
+                Enviar Comprobante a Revisión
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP INTERNO -->
+      <div id="tab-whatsapp" class="hidden space-y-6 max-w-xl mx-auto">
+        <h2 class="text-2xl font-bold text-amber-500">Enviar Mensaje de WhatsApp</h2>
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
+          <div>
+            <label class="block text-xs uppercase text-slate-400 mb-1">Número de Teléfono (con código de país, ej: 521...)</label>
+            <input type="text" id="wa-phone" placeholder="5215512345678" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase text-slate-400 mb-1">Mensaje</label>
+            <textarea id="wa-message" rows="5" placeholder="Escribe tu mensaje para el cliente..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
+          </div>
+
+          <button onclick="sendInternalWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition text-xs uppercase tracking-wider">
+            💬 Enviar Mensaje por WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <!-- TÉRMINOS Y CONDICIONES -->
+      <div id="tab-terms" class="hidden space-y-8">
+        <h2 class="text-2xl font-bold text-amber-500">Términos y Condiciones del Servicio de Streaming</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+            <h3 class="text-lg font-bold text-amber-400 border-b border-slate-800 pb-2">📌 Reglas Generales de Uso</h3>
+            
+            <div class="space-y-3 text-xs text-slate-300">
+              <p>• <strong>Garantía del Servicio:</strong> El servicio cuenta con <strong>25 DÍAS DE GARANTÍA</strong> a partir de la fecha de entrega. Transcurrido ese periodo, no se brindará soporte ni reemplazos.</p>
+              <p>• <strong>Perfiles Compartidos:</strong> Las cuentas corresponden a perfiles asignados. Se debe utilizar únicamente el perfil asignado.</p>
+              <p>• <strong>Un Dispositivo a la Vez:</strong> Puedes iniciar sesión en varios dispositivos, pero sólo reproducir en 1 dispositivo simultáneamente.</p>
+              
+              <div class="p-3 bg-red-950/30 border border-red-500/40 rounded-xl space-y-1">
+                <p class="font-bold text-red-400">⚠️ Para hacer válida la garantía es INDISPENSABLE:</p>
+                <p>1. No cambiar la contraseña proporcionada.</p>
+                <p>2. No modificar el NIP asignado.</p>
+                <p>3. Verificar que los datos sean correctos antes de reportar.</p>
+                <p>4. Utilizar únicamente el perfil asignado.</p>
+              </div>
+
+              <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                <p class="font-bold text-amber-400">⛔ Políticas de Reembolso:</p>
+                <p>NO HAY DEVOLUCIÓN de dinero bajo ninguna circunstancia.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-center">
+            <img src="/image_d2e6e3.jpg" alt="Términos y Condiciones de Streaming" class="rounded-xl max-h-[600px] object-contain shadow-2xl">
+          </div>
+        </div>
+      </div>
+
+      <!-- SOPORTE TÉCNICO -->
+      <div id="tab-support" class="hidden space-y-8">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-amber-500">Centro de Soporte Técnico</h2>
+          <div class="flex gap-2 text-xs font-bold">
+            <span class="px-2.5 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-500/30">🔴 Rojo: Abierto/Sin Asignar</span>
+            <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">🟡 Amarillo: En Revisión</span>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 Verde: Resuelto</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl md:col-span-1 space-y-4">
+            <h3 class="text-lg font-bold text-white">Crear Nuevo Ticket</h3>
+            <form id="form-create-ticket" class="space-y-3">
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Orden / Perfil Afectado (Opcional)</label>
+                <select id="ticket-order-id" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+                  <option value="">Cargando órdenes...</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Asunto / Tipo de Falla</label>
+                <input type="text" id="ticket-subject" placeholder="Ej: Clave incorrecta en Netflix" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Subir Imagen del Error (Captura)</label>
+                <input type="file" id="ticket-image-file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-500 cursor-pointer bg-slate-800 border border-slate-700 rounded-lg">
+              </div>
+
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Comentario / Detalle del Error</label>
+                <textarea id="ticket-comment" rows="3" placeholder="Explica detalladamente la falla reportada por el cliente..." required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"></textarea>
+              </div>
+
+              <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-2.5 rounded-lg font-bold text-xs">Enviar Ticket</button>
+            </form>
+          </div>
+
+          <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl md:col-span-2 space-y-4">
+            <h3 class="text-lg font-bold text-white">Historial de Tickets de Soporte</h3>
+            <div id="tickets-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTE DE VENTAS ADMIN -->
+      <div id="tab-admin-metrics" class="hidden space-y-8">
+        <h2 class="text-2xl font-bold text-amber-500">Reporte Financiero y Calendario de Ventas</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+            <span class="text-xs font-bold text-slate-400 uppercase">Ventas de Hoy</span>
+            <h3 class="text-2xl font-black text-emerald-400 mt-1">$<span id="cal-today-sales">0.00</span> MXN</h3>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+            <span class="text-xs font-bold text-slate-400 uppercase">Ventas de esta Semana</span>
+            <h3 class="text-2xl font-black text-amber-400 mt-1">$<span id="cal-week-sales">0.00</span> MXN</h3>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+            <span class="text-xs font-bold text-slate-400 uppercase">Ventas de este Mes</span>
+            <h3 class="text-2xl font-black text-indigo-400 mt-1">$<span id="cal-month-sales">0.00</span> MXN</h3>
+          </div>
+        </div>
+
+        <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+          <h3 class="text-lg font-bold text-white">📅 Calendario / Desglose de Ventas por Día</h3>
+          <div id="sales-calendar-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+        </div>
+
+        <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+          <h3 class="text-lg font-bold text-white">🏆 Ranking de Revendedores (Más Compras)</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-800 text-xs uppercase text-slate-400">
+                <tr>
+                  <th class="p-3">Nombre / Revendedor</th>
+                  <th class="p-3">Saldo Actual</th>
+                  <th class="p-3">Compras Totales</th>
+                  <th class="p-3">Inversión Acumulada</th>
+                </tr>
+              </thead>
+              <tbody id="ranking-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTARIO POR CUENTAS -->
+      <div id="tab-admin-inventory" class="hidden space-y-8">
+        <h2 class="text-2xl font-bold text-amber-500">Inventario Agrupado por Cuentas de Correo</h2>
+
+        <div class="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+          <h3 class="text-lg font-bold text-white">📦 Estado de Cuentas y Control de Perfiles completos</h3>
+          <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-800 text-xs uppercase text-slate-400 sticky top-0">
+                <tr>
+                  <th class="p-3">Plataforma</th>
+                  <th class="p-3">Correo / Cuenta</th>
+                  <th class="p-3">Contraseña</th>
+                  <th class="p-3">Perfiles Disponibles</th>
+                  <th class="p-3">Perfiles Vendidos</th>
+                  <th class="p-3">Estado de la Cuenta</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-grouped-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL ADMIN CON NAVEGACIÓN FLUIDA -->
+      <div id="tab-admin" class="hidden space-y-8">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-amber-500">Gestión Operativa de Administrador</h2>
+          <span class="text-xs text-slate-400 font-semibold">💡 Usa los botones ⬆️ / ⬇️ para ordenar los paneles</span>
+        </div>
+
+        <div id="admin-modules-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div data-module-id="mod-1" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">⚙️ Cambiar Nombre del Administrador</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-1')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-1')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-update-admin-name" class="flex gap-3 items-center">
+              <input type="text" id="admin-new-name" placeholder="Nuevo Nombre del Administrador" required class="flex-1 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+              <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
+                Guardar
+              </button>
+            </form>
+          </div>
+
+          <!-- 1 & 3. PERSONALIZAR MARCA CON SELECTOR DE TAMAÑO NOTORIO Y MODO DE VISUALIZACIÓN (TEXTO, LOGO O AMBOS) -->
+          <div data-module-id="mod-2" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">🎨 Personalizar Marca (Nombre y Logo)</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-2')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-2')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-update-branding" class="space-y-3">
+              <input type="text" id="branding-name-input" placeholder="Nombre de la Marca" required class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Subir Logo desde PC/Móvil</label>
+                  <input type="file" id="branding-logo-file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-amber-600 file:text-white bg-slate-800 border border-slate-700 rounded-lg">
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Tamaño de Logo</label>
+                  <select id="branding-logo-size" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+                    <option value="h-7">Pequeño (65 px)</option>
+                    <option value="h-10" selected>Mediano (110 px)</option>
+                    <option value="h-14">Grande (160 px)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 3. MODO DE MOSTRAR MARCA -->
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Modo de Visualización de Marca</label>
+                <select id="branding-display-mode" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none font-bold">
+                  <option value="both">Mostrar Texto y Logo (Ambos)</option>
+                  <option value="logo_only">Mostrar Sólo Logo</option>
+                  <option value="text_only">Mostrar Sólo Texto</option>
+                </select>
+              </div>
+
+              <input type="url" id="branding-logo-url" placeholder="O pega URL de Logo" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              
+              <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition uppercase">
+                  Guardar Marca
+                </button>
+                <button type="button" onclick="removeBrandLogo()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 px-3 py-2 rounded-lg text-xs font-bold transition">
+                  🗑️ Eliminar Logo
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div data-module-id="mod-3" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">1. Crear Nuevo Revendedor</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-3')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-3')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-create-user" class="space-y-3">
+              <input type="text" id="new-user-name" placeholder="Nombre del revendedor" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <input type="email" id="new-user-email" placeholder="Correo electrónico" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <input type="password" id="new-user-pass" placeholder="Contraseña inicial" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold text-sm">Registrar Usuario</button>
+            </form>
+          </div>
+
+          <div data-module-id="mod-4" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">2. Ajuste Manual de Saldo</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-4')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-4')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-recharge" class="space-y-3">
+              <input type="email" id="recharge-email" placeholder="Correo del revendedor" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <input type="number" step="0.01" id="recharge-amount" placeholder="Monto (ej. 50.00)" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button type="button" onclick="submitBalanceAction('add')" class="bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold text-xs">
+                  + Agregar Saldo
+                </button>
+                <button type="button" onclick="submitBalanceAction('deduct')" class="bg-red-600/80 hover:bg-red-600 py-2 rounded-lg font-bold text-xs">
+                  - Quitar Saldo
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div data-module-id="mod-5" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">🏦 Bancos y Pasarela (TDC)</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-5')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-5')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-update-bank" class="space-y-2">
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="bank-name-input" placeholder="Banco" class="p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                <input type="text" id="bank-holder-input" placeholder="Titular" class="p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="bank-account-input" placeholder="Cuenta/CLABE" class="p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                <input type="text" id="bank-concept-input" placeholder="Concepto" class="p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+              </div>
+              <input type="url" id="payment-gateway-url-input" placeholder="Link Pago TDC (Mercado Pago/Clip)" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded text-xs transition uppercase">
+                Guardar Bancos / Pasarela
+              </button>
+            </form>
+          </div>
+
+          <div data-module-id="mod-6" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">📥 Recargas Pendientes</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-6')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-6')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-48 overflow-y-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800 uppercase text-slate-400 sticky top-0">
+                  <tr>
+                    <th class="p-2">Revendedor</th>
+                    <th class="p-2">Monto</th>
+                    <th class="p-2">Comprobante</th>
+                    <th class="p-2">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="recharge-requests-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div data-module-id="mod-7" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">3. Registrar Producto en Catálogo</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-7')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-7')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <form id="form-create-product" class="space-y-3">
+              <input type="text" id="prod-name" placeholder="Ej. HBO MAX PANTALLA" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <select id="prod-type" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+                <option value="Perfil">Perfil</option>
+                <option value="Cuenta">Cuenta Completa</option>
+                <option value="Combo">Combo</option>
+              </select>
+              <input type="number" step="0.01" id="prod-price" placeholder="Precio (MXN)" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-indigo-600 file:text-white bg-slate-800 border border-slate-700 rounded-lg">
+              <input type="url" id="prod-image" placeholder="O pega URL de imagen" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg font-bold text-sm">Crear Producto</button>
+            </form>
+          </div>
+
+          <div data-module-id="mod-8" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <h3 class="text-lg font-bold text-white">4. Cargar Perfiles / Cuentas al Stock</h3>
+              <div class="flex gap-1">
+                <button onclick="moveModuleUp('mod-8')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬆️</button>
+                <button onclick="moveModuleDown('mod-8')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
+              </div>
+            </div>
+            <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO</p>
+            
+            <form id="form-add-stock" class="space-y-3">
+              <select id="stock-product-select" onchange="updatePlatformInputs()" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+                <option value="">Selecciona Producto/Plataforma...</option>
+              </select>
+              
+              <div id="stock-inputs-container" class="space-y-3 max-h-44 overflow-y-auto pr-1">
+                <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+                  <input type="text" placeholder="Plataforma (ej: Disney / HBO)" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                  <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  <div class="grid grid-cols-2 gap-2">
+                    <input type="text" placeholder="Contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <input type="text" placeholder="Perfil (ej. Perfil 1)" value="Perfil 1" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button type="button" onclick="addStockRow()" class="w-1/2 bg-slate-800 hover:bg-slate-700 border border-amber-500/30 text-amber-400 py-2 rounded-lg text-xs font-bold">+ Agregar perfil</button>
+                <button type="submit" class="w-1/2 bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold text-xs">Guardar Stock</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- LISTA DE REVENDEDORES REGISTRADOS CON TABLA FIJA Y SCROLL INTERNO -->
+        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 class="text-lg font-bold text-white">Lista de Revendedores Registrados</h3>
+            <div class="relative w-full sm:w-64">
+              <input type="text" id="search-user-input" onkeyup="filterUsersTable()" placeholder="🔍 Buscar por nombre o correo..." class="w-full p-2 pl-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto max-h-72 overflow-y-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-800 text-xs uppercase text-slate-400 sticky top-0 z-10">
+                <tr>
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Nombre</th>
+                  <th class="p-3">Correo</th>
+                  <th class="p-3">Rol</th>
+                  <th class="p-3">Saldo</th>
+                  <th class="p-3">Estado Pass</th>
+                  <th class="p-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL APROBAR/RECHAZAR RECARGA -->
+  <div id="modal-auth-recharge" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-amber-500" id="auth-recharge-title">Confirmar Operación de Recarga</h3>
+      <p class="text-xs text-slate-300" id="auth-recharge-desc">Ingresa tu contraseña de Administrador para confirmar esta acción:</p>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Contraseña de Administrador</label>
+        <input type="password" id="auth-recharge-admin-pass" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeAuthRechargeModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeProcessRechargeRequest()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-xs font-bold">Autorizar y Procesar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REINICIAR CONTRASEÑA -->
+  <div id="modal-reset-pass" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-amber-500">Restablecer Contraseña</h3>
+        <button onclick="closeResetPassModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-300" id="reset-pass-desc">Ingresa la nueva contraseña temporal:</p>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Nueva Contraseña Temporal</label>
+        <input type="password" id="reset-new-pass-input" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeResetPassModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeResetPassword()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-xs font-bold">Guardar Contraseña</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ELIMINAR REVENDEDOR -->
+  <div id="modal-delete-user" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-red-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-red-500">Eliminar Revendedor</h3>
+      <p class="text-xs text-slate-300" id="delete-user-desc"></p>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Ingresa tu contraseña de Admin para Confirmar</label>
+        <input type="password" id="delete-user-admin-pass" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-red-500">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeDeleteUserModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeDeleteUser()" class="w-1/2 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-xs font-bold">Eliminar Usuario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RESPONDER Y CAMBIAR ESTADO DE TICKET -->
+  <div id="modal-resolve-ticket" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-amber-500">Atender Ticket #<span id="resolve-ticket-id"></span></h3>
+        <button onclick="closeResolveModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+
+      <form id="form-resolve-ticket" class="space-y-4">
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Cambiar Estado del Ticket</label>
+          <select id="resolve-admin-status" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+            <option value="review">🟡 Colocar en REVISIÓN (Punto Amarillo)</option>
+            <option value="resolved">🟢 Marcar como RESUELTO / CERRADO</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Comentario / Respuesta para el Revendedor</label>
+          <textarea id="resolve-admin-comment" rows="3" placeholder="Ej: Se está revisando con el proveedor..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase text-slate-400 mb-1">Subir Captura / Comprobante (Opcional)</label>
+          <input type="file" id="resolve-admin-image" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-500 cursor-pointer bg-slate-800 border border-slate-700 rounded-lg">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeResolveModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+          <button type="submit" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-xs font-bold">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN SALDO MANUAL -->
+  <div id="modal-confirm-balance" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-amber-500" id="balance-modal-title">Confirmar Transacción</h3>
+      <p class="text-xs text-slate-300" id="balance-modal-desc"></p>
+      
+      <div id="modal-error-msg" class="hidden p-2.5 bg-red-500/20 border border-red-500/50 rounded-lg text-xs text-red-400"></div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Ingresa la contraseña de Admin para Autorizar</label>
+        <input type="password" id="admin-auth-password" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeBalanceModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeBalanceAction()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-xs font-bold">Autorizar y Procesar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CARRITO -->
+  <div id="modal-cart" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-xl font-bold text-amber-500">🛒 Carrito de Compras</h3>
+        <button onclick="toggleCartModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+      
+      <div id="cart-items-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
+
+      <div class="border-t border-slate-800 pt-4 flex justify-between items-center">
+        <span class="text-slate-400 text-sm">Total:</span>
+        <span class="text-2xl font-black text-emerald-400">$<span id="cart-total-amount">0.00</span> MXN</span>
+      </div>
+
+      <button onclick="checkoutCart()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-3 rounded-xl transition">
+        Confirmar y Pagar
+      </button>
     </div>
   </div>
 
   <script>
     let currentUser = null;
+    let cart = [];
+    let pendingBalanceAction = null;
+    let selectedTicketIdForResolve = null;
+    let pendingDeleteUserId = null;
+    let pendingResetUserId = null;
+    let pendingRechargeAuthData = null;
+    let allUsersCache = [];
+    let globalConfigCache = {};
+    let lastUserBalance = null;
 
-    async function loadProducts() {
+    async function loadGlobalBranding() {
       try {
-        const res = await fetch('/api/products');
-        const products = await res.json();
-        const grid = document.getElementById('productGrid');
-        grid.innerHTML = '';
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        globalConfigCache = data;
 
-        products.forEach(p => {
-          const card = document.createElement('div');
-          card.className = 'card';
+        const brandTitle = data.brand_name || 'CPANEL';
+        document.getElementById('page-title').innerText = brandTitle;
+        document.getElementById('brand-login-title').innerText = brandTitle;
+        document.getElementById('brand-header-title').innerText = brandTitle;
+
+        // 3. CONTROL DE VISUALIZACIÓN: TEXTO, LOGO O AMBOS
+        const displayMode = data.brand_display_mode || 'both';
+        
+        // Header
+        const headerTitleEl = document.getElementById('brand-header-title');
+        const logoContainer = document.getElementById('brand-logo-container');
+
+        if (displayMode === 'logo_only') {
+          headerTitleEl.classList.add('hidden');
+        } else {
+          headerTitleEl.classList.remove('hidden');
+        }
+
+        if (displayMode === 'text_only') {
+          logoContainer.innerHTML = '';
+          document.getElementById('brand-login-logo-container').innerHTML = '';
+        } else if (data.brand_logo && data.brand_logo.trim() !== '') {
+          // 1. TAMAÑOS EXPANDIDOS
+          let heightPx = "110px"; // Mediano
+          if (data.brand_logo_size === 'h-7') heightPx = "65px"; // Pequeño
+          if (data.brand_logo_size === 'h-14') heightPx = "160px"; // Grande
+
+          const imgHtml = `<img src="${data.brand_logo}" alt="Logo" style="height: ${heightPx} !important; width: auto !important; max-height: none !important;" class="object-contain rounded-lg border border-amber-500/30">`;
           
-          let adminBtns = '';
-          if (currentUser && currentUser.role === 'admin') {
-            adminBtns = `
-              <div class="btn-group">
-                <button onclick="openEditProductModal(${p.id}, '${escapeQuotes(p.name)}', '${p.type}', ${p.price}, '${escapeQuotes(p.image_url || '')}')" class="btn btn-primary">✏️ Editar</button>
-                <button onclick="deleteProduct(${p.id})" class="btn btn-danger">Eliminar</button>
-              </div>
-            `;
+          logoContainer.innerHTML = imgHtml;
+          
+          // 2. BRANDING EN LA TARJETA DE LOGIN
+          const loginLogoContainer = document.getElementById('brand-login-logo-container');
+          if (loginLogoContainer) {
+            loginLogoContainer.innerHTML = imgHtml;
+          }
+        } else {
+          logoContainer.innerHTML = '';
+          document.getElementById('brand-login-logo-container').innerHTML = '';
+        }
+
+        if (document.getElementById('branding-name-input')) {
+          document.getElementById('branding-name-input').value = data.brand_name || '';
+        }
+        if (document.getElementById('branding-logo-size')) {
+          document.getElementById('branding-logo-size').value = data.brand_logo_size || 'h-10';
+        }
+        if (document.getElementById('branding-display-mode')) {
+          document.getElementById('branding-display-mode').value = data.brand_display_mode || 'both';
+        }
+        if (document.getElementById('bank-name-input')) {
+          document.getElementById('bank-name-input').value = data.bank_name || '';
+          document.getElementById('bank-holder-input').value = data.bank_holder || '';
+          document.getElementById('bank-account-input').value = data.bank_account || '';
+          document.getElementById('bank-concept-input').value = data.bank_concept || '';
+          document.getElementById('payment-gateway-url-input').value = data.payment_gateway_url || '';
+        }
+
+        if (!document.getElementById('tab-recharge').classList.contains('hidden')) {
+          loadRechargeTab();
+        }
+      } catch (err) {
+        console.error("Error cargando branding");
+      }
+    }
+
+    loadGlobalBranding();
+
+    function moveModuleUp(id) {
+      const el = document.querySelector(`[data-module-id="${id}"]`);
+      if (el && el.previousElementSibling) {
+        el.parentNode.insertBefore(el, el.previousElementSibling);
+        saveModulesOrder();
+      }
+    }
+
+    function moveModuleDown(id) {
+      const el = document.querySelector(`[data-module-id="${id}"]`);
+      if (el && el.nextElementSibling) {
+        el.parentNode.insertBefore(el.nextElementSibling, el);
+        saveModulesOrder();
+      }
+    }
+
+    function saveModulesOrder() {
+      const container = document.getElementById('admin-modules-container');
+      const cards = container.querySelectorAll('.admin-module-card');
+      const order = Array.from(cards).map(c => c.getAttribute('data-module-id'));
+      localStorage.setItem('admin_modules_custom_order', order.join('|'));
+    }
+
+    function restoreModulesOrder() {
+      const orderStr = localStorage.getItem('admin_modules_custom_order');
+      if (!orderStr) return;
+      const order = orderStr.split('|');
+      const container = document.getElementById('admin-modules-container');
+
+      order.forEach(id => {
+        const el = container.querySelector(`[data-module-id="${id}"]`);
+        if (el) container.appendChild(el);
+      });
+    }
+
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          currentUser = data.user;
+          document.getElementById('view-login').classList.add('hidden');
+
+          if (currentUser.mustChangePassword) {
+            document.getElementById('view-force-password').classList.remove('hidden');
+            return;
           }
 
-          card.innerHTML = `
-            <img src="${p.image_url || 'https://via.placeholder.com/300x160?text=No+Image'}" alt="${p.name}">
-            <div class="card-body">
+          openAppView();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert("Error de conexión al servidor.");
+      }
+    });
+
+    function toggleForgotModal() {
+      document.getElementById('modal-forgot').classList.toggle('hidden');
+      document.getElementById('forgot-email').value = '';
+    }
+
+    async function requestAdminReset() {
+      const email = document.getElementById('forgot-email').value;
+
+      if (!email || email.trim() === '') {
+        alert("Ingresa tu correo electrónico.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+        if (res.ok) toggleForgotModal();
+      } catch (err) {
+        alert("Error procesando solicitud.");
+      }
+    }
+
+    function submitBalanceAction(action) {
+      const email = document.getElementById('recharge-email').value;
+      const amount = document.getElementById('recharge-amount').value;
+
+      if (!email || !amount || parseFloat(amount) <= 0) {
+        alert("Ingresa un correo de revendedor y un monto válido.");
+        return;
+      }
+
+      pendingBalanceAction = { action, email, amount };
+      const actionText = action === 'add' ? 'AGREGAR' : 'DESCONTAR/QUITAR';
+
+      document.getElementById('balance-modal-title').innerText = `Confirmar ${actionText} Saldo`;
+      document.getElementById('balance-modal-desc').innerText = `¿Estás seguro de que deseas ${actionText} $${parseFloat(amount).toFixed(2)} MXN a la cuenta de ${email}?`;
+      document.getElementById('admin-auth-password').value = '';
+      document.getElementById('modal-error-msg').classList.add('hidden');
+      document.getElementById('modal-confirm-balance').classList.remove('hidden');
+    }
+
+    function closeBalanceModal() {
+      document.getElementById('modal-confirm-balance').classList.add('hidden');
+      document.getElementById('modal-error-msg').classList.add('hidden');
+      pendingBalanceAction = null;
+    }
+
+    async function executeBalanceAction() {
+      const adminPassword = document.getElementById('admin-auth-password').value;
+      const errorDiv = document.getElementById('modal-error-msg');
+      errorDiv.classList.add('hidden');
+
+      if (!adminPassword) {
+        errorDiv.innerText = "Debes ingresar tu contraseña de Administrador.";
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (!pendingBalanceAction) return;
+
+      try {
+        const res = await fetch('/api/admin/manage-balance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminPassword,
+            targetEmail: pendingBalanceAction.email,
+            amount: pendingBalanceAction.amount,
+            action: pendingBalanceAction.action
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(data.message);
+          closeBalanceModal();
+          document.getElementById('form-recharge').reset();
+          loadUsersTable();
+          if(currentUser.role === 'admin') loadAdminSalesReport();
+        } else {
+          errorDiv.innerText = data.error || 'Error al procesar.';
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorDiv.innerText = "Error de conexión con el servidor.";
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function openAppView() {
+      document.getElementById('view-force-password').classList.add('hidden');
+      document.getElementById('view-app').classList.remove('hidden');
+      
+      updateGreeting();
+
+      document.getElementById('user-email-display').innerText = `${currentUser.email} (${currentUser.role})`;
+
+      if (currentUser.role === 'admin') {
+        document.getElementById('tab-btn-admin').classList.remove('hidden');
+        document.getElementById('tab-btn-admin-metrics').classList.remove('hidden');
+        document.getElementById('tab-btn-admin-inventory').classList.remove('hidden');
+        document.getElementById('tab-btn-recharge').classList.add('hidden');
+        document.getElementById('reseller-dashboard-panel').classList.add('hidden');
+        document.getElementById('admin-new-name').value = currentUser.name || '';
+        restoreModulesOrder();
+        loadAdminSalesReport();
+      } else {
+        document.getElementById('tab-btn-admin').classList.add('hidden');
+        document.getElementById('tab-btn-admin-metrics').classList.add('hidden');
+        document.getElementById('tab-btn-admin-inventory').classList.add('hidden');
+        document.getElementById('tab-btn-recharge').classList.remove('hidden');
+        document.getElementById('reseller-dashboard-panel').classList.remove('hidden');
+        document.getElementById('balance-badge').innerHTML = `Saldo: $<span id="user-balance">${currentUser.balance.toFixed(2)}</span> MXN`;
+        lastUserBalance = currentUser.balance;
+        loadResellerDashboard();
+      }
+
+      loadUserOrders();
+      checkSupportAlerts();
+      setInterval(checkSupportAlerts, 8000);
+      if (currentUser.role === 'reseller') {
+        setInterval(checkUserBalanceRealtime, 4000);
+        setInterval(loadGlobalBranding, 10000);
+      }
+      switchTab('store');
+    }
+
+    async function checkUserBalanceRealtime() {
+      if (!currentUser || currentUser.role === 'admin') return;
+
+      try {
+        const res = await fetch(`/api/user/balance/${currentUser.id}`);
+        const data = await res.json();
+
+        if (res.ok && data.balance !== undefined) {
+          const newBal = data.balance;
+          if (lastUserBalance !== null && newBal !== lastUserBalance) {
+            const diff = newBal - lastUserBalance;
+            showBalanceToast(diff, newBal);
+            lastUserBalance = newBal;
+            currentUser.balance = newBal;
+            document.getElementById('user-balance').innerText = newBal.toFixed(2);
+            loadResellerDashboard();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function showBalanceToast(diff, newTotal) {
+      const toast = document.getElementById('balance-toast');
+      const isPositive = diff > 0;
+
+      toast.className = `fixed top-20 right-5 z-[100] p-4 rounded-xl shadow-2xl border text-sm font-bold flex items-center gap-3 transition-all duration-300 ${isPositive ? 'bg-emerald-950 border-emerald-500 text-emerald-300' : 'bg-red-950 border-red-500 text-red-300'}`;
+      toast.innerHTML = `
+        <span>${isPositive ? '💵 ¡Saldo Actualizado!' : '💸 Saldo Descontado'}</span>
+        <span>${isPositive ? '+' : ''}$${diff.toFixed(2)} MXN (Total: $${newTotal.toFixed(2)} MXN)</span>
+      `;
+
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 5000);
+    }
+
+    function updateGreeting() {
+      const hour = new Date().getHours();
+      let greetingPrefix = "¡Buen día";
+      if (hour >= 12 && hour < 19) greetingPrefix = "¡Buenas tardes";
+      if (hour >= 19 || hour < 6) greetingPrefix = "¡Buenas noches";
+      
+      const userName = currentUser.name || "Usuario";
+      document.getElementById('greeting-text').innerText = `${greetingPrefix}, ${userName}!`;
+    }
+
+    document.getElementById('form-update-admin-name').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newName = document.getElementById('admin-new-name').value;
+
+      try {
+        const res = await fetch('/api/admin/update-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminId: currentUser.id, newName })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          currentUser.name = data.newName;
+          updateGreeting();
+        }
+      } catch (err) {
+        alert("Error de conexión al guardar el nombre.");
+      }
+    });
+
+    document.getElementById('form-update-bank').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const bankName = document.getElementById('bank-name-input').value;
+      const bankHolder = document.getElementById('bank-holder-input').value;
+      const bankAccount = document.getElementById('bank-account-input').value;
+      const bankConcept = document.getElementById('bank-concept-input').value;
+      const paymentGatewayUrl = document.getElementById('payment-gateway-url-input').value;
+
+      try {
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bankName,
+            bankHolder,
+            bankAccount,
+            bankConcept,
+            paymentGatewayUrl
+          })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          loadGlobalBranding();
+        }
+      } catch (err) {
+        alert("Error guardando datos bancarios.");
+      }
+    });
+
+    document.getElementById('form-update-branding').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const brandName = document.getElementById('branding-name-input').value;
+      const brandLogoUrl = document.getElementById('branding-logo-url').value;
+      const brandLogoSize = document.getElementById('branding-logo-size').value;
+      const brandDisplayMode = document.getElementById('branding-display-mode').value;
+      const fileInput = document.getElementById('branding-logo-file');
+
+      try {
+        const formData = new FormData();
+        formData.append('brandName', brandName);
+        formData.append('brandLogoUrl', brandLogoUrl);
+        formData.append('brandLogoSize', brandLogoSize);
+        formData.append('brandDisplayMode', brandDisplayMode);
+        if (fileInput && fileInput.files.length > 0) {
+          formData.append('brandLogoFile', fileInput.files[0]);
+        }
+
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          loadGlobalBranding();
+        }
+      } catch (err) {
+        alert("Error actualizando la marca.");
+      }
+    });
+
+    async function removeBrandLogo() {
+      if (!confirm("¿Estás seguro de eliminar el logo de la barra de navegación?")) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('deleteLogo', 'true');
+
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert("El logo ha sido eliminado.");
+
+        if (res.ok) {
+          loadGlobalBranding();
+        }
+      } catch (err) {
+        alert("Error al borrar el logo.");
+      }
+    }
+
+    function loadRechargeTab() {
+      const box = document.getElementById('bank-details-box');
+      const bName = globalConfigCache.bank_name || 'No configurado';
+      const bHolder = globalConfigCache.bank_holder || 'No configurado';
+      const bAcc = globalConfigCache.bank_account || 'No configurado';
+      const bConc = globalConfigCache.bank_concept || 'No configurado';
+
+      box.innerHTML = `
+        <p class="p-2 bg-slate-950 rounded border border-slate-800"><strong>Banco:</strong> <span class="text-white font-semibold">${bName}</span></p>
+        <p class="p-2 bg-slate-950 rounded border border-slate-800"><strong>Titular:</strong> <span class="text-white font-semibold">${bHolder}</span></p>
+        <p class="p-2 bg-slate-950 rounded border border-slate-800"><strong>Cuenta / CLABE:</strong> <span class="font-mono text-amber-400 font-bold">${bAcc}</span></p>
+        <p class="p-2 bg-slate-950 rounded border border-slate-800"><strong>Concepto Requerido:</strong> <span class="font-mono text-emerald-400 font-bold">${bConc}</span></p>
+      `;
+
+      const gatewayContainer = document.getElementById('payment-gateway-container');
+      const gatewayLink = document.getElementById('payment-gateway-link');
+
+      if (globalConfigCache.payment_gateway_url && globalConfigCache.payment_gateway_url.trim() !== '') {
+        gatewayLink.href = globalConfigCache.payment_gateway_url;
+        gatewayContainer.classList.remove('hidden');
+      } else {
+        gatewayContainer.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('form-report-recharge').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = document.getElementById('recharge-report-amount').value;
+      const fileInput = document.getElementById('recharge-report-file');
+
+      if (!fileInput.files.length) {
+        alert("Debes adjuntar la imagen del comprobante de pago.");
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('userId', currentUser.id);
+        formData.append('amount', amount);
+        formData.append('receiptImage', fileInput.files[0]);
+
+        const res = await fetch('/api/reseller/recharge', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          e.target.reset();
+        }
+      } catch (err) {
+        alert("Error de conexión al enviar el comprobante.");
+      }
+    });
+
+    async function loadRechargeRequestsTable() {
+      try {
+        const res = await fetch('/api/admin/recharge-requests');
+        const requests = await res.json();
+        const tbody = document.getElementById('recharge-requests-table-body');
+
+        if (requests.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500">No hay solicitudes de recarga.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = requests.map(r => `
+          <tr class="border-b border-slate-800 hover:bg-slate-800/40">
+            <td class="p-2 font-bold text-white">${r.user_name}</td>
+            <td class="p-2 font-black text-emerald-400">$${r.amount.toFixed(2)}</td>
+            <td class="p-2">
+              ${r.receipt_url ? `<a href="${r.receipt_url}" target="_blank" class="text-xs text-amber-400 hover:underline font-bold">🖼️ Ver</a>` : 'Sin foto'}
+            </td>
+            <td class="p-2 flex gap-1">
+              ${r.status === 'pending' ? `
+                <button onclick="openProcessRechargeModal(${r.id}, 'approve', ${r.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">Aprobar</button>
+                <button onclick="openProcessRechargeModal(${r.id}, 'reject', ${r.amount})" class="bg-red-600 hover:bg-red-500 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">Rechazar</button>
+              ` : `<span class="text-[10px] text-slate-500 uppercase font-bold">${r.status}</span>`}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error("Error cargando solicitudes");
+      }
+    }
+
+    function openProcessRechargeModal(requestId, action, amount) {
+      pendingRechargeAuthData = { requestId, action };
+      document.getElementById('auth-recharge-title').innerText = `Confirmar ${action === 'approve' ? 'APROBACIÓN' : 'RECHAZO'} de Recarga`;
+      document.getElementById('auth-recharge-desc').innerText = `¿Deseas ${action === 'approve' ? 'abonar' : 'rechazar'} $${parseFloat(amount).toFixed(2)} MXN? Ingresa tu contraseña de Admin:`;
+      document.getElementById('auth-recharge-admin-pass').value = '';
+      document.getElementById('modal-auth-recharge').classList.remove('hidden');
+    }
+
+    function closeAuthRechargeModal() {
+      document.getElementById('modal-auth-recharge').classList.add('hidden');
+      pendingRechargeAuthData = null;
+    }
+
+    async function executeProcessRechargeRequest() {
+      const adminPassword = document.getElementById('auth-recharge-admin-pass').value;
+
+      if (!adminPassword) {
+        alert("Ingresa tu contraseña de Administrador.");
+        return;
+      }
+
+      if (!pendingRechargeAuthData) return;
+
+      try {
+        const res = await fetch('/api/admin/recharge-requests/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminPassword,
+            requestId: pendingRechargeAuthData.requestId,
+            action: pendingRechargeAuthData.action
+          })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          closeAuthRechargeModal();
+          loadRechargeRequestsTable();
+          loadUsersTable();
+        }
+      } catch (err) {
+        alert("Error al procesar la recarga.");
+      }
+    }
+
+    function sendInternalWhatsApp() {
+      const phone = document.getElementById('wa-phone').value.trim();
+      const message = document.getElementById('wa-message').value.trim();
+
+      if (!phone || !message) {
+        alert("Ingresa el número de teléfono y el mensaje.");
+        return;
+      }
+
+      const encodedMsg = encodeURIComponent(message);
+      const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMsg}`;
+      window.open(waUrl, '_blank');
+    }
+
+    async function loadAdminSalesReport() {
+      const res = await fetch('/api/admin/sales-report');
+      const data = await res.json();
+
+      document.getElementById('balance-badge').innerHTML = `Ventas Totales: <span class="text-amber-400 font-extrabold">$${data.totalAdminSalesAmount.toFixed(2)} MXN</span>`;
+      
+      document.getElementById('cal-today-sales').innerText = data.todayAmount.toFixed(2);
+      document.getElementById('cal-week-sales').innerText = data.weekAmount.toFixed(2);
+      document.getElementById('cal-month-sales').innerText = data.monthAmount.toFixed(2);
+
+      const calGrid = document.getElementById('sales-calendar-grid');
+      const entries = Object.entries(data.salesByDay);
+
+      if (entries.length === 0) {
+        calGrid.innerHTML = `<p class="text-slate-500 text-xs col-span-full">No hay registro de ventas acumuladas.</p>`;
+      } else {
+        calGrid.innerHTML = entries.map(([date, total]) => `
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 font-mono">${date}</span>
+            <p class="text-sm font-black text-amber-400 mt-1">$${total.toFixed(2)}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    // 2. CONTEO DE NOTIFICACIONES ESTRICTO (SI ES 0 OCULTA COMPLETAMENTE)
+    async function checkSupportAlerts() {
+      if (!currentUser) return;
+      const activeTabIsSupport = !document.getElementById('tab-support').classList.contains('hidden');
+      const badgeOpen = document.getElementById('badge-support-open');
+      const badgeReview = document.getElementById('badge-support-review');
+
+      if (activeTabIsSupport) {
+        badgeOpen.classList.add('hidden');
+        badgeReview.classList.add('hidden');
+        return;
+      }
+
+      if (currentUser.role === 'admin') {
+        const res = await fetch('/api/support/alerts/admin');
+        const data = await res.json();
+
+        const openAndPendingCount = (data.openCount || 0) + (data.pendingRechargesCount || 0);
+
+        if (openAndPendingCount > 0) {
+          badgeOpen.innerText = openAndPendingCount;
+          badgeOpen.classList.remove('hidden');
+        } else {
+          badgeOpen.classList.add('hidden');
+        }
+
+        if (data.reviewCount > 0) {
+          badgeReview.innerText = data.reviewCount;
+          badgeReview.classList.remove('hidden');
+        } else {
+          badgeReview.classList.add('hidden');
+        }
+      } else {
+        const res = await fetch(`/api/support/alerts/${currentUser.id}`);
+        const data = await res.json();
+
+        const lastSeen = localStorage.getItem(`support_last_seen_${currentUser.id}`) || 0;
+        const lastUpdatedTime = data.lastUpdatedTime ? new Date(data.lastUpdatedTime).getTime() : 0;
+
+        if (lastUpdatedTime > parseInt(lastSeen) && (data.reviewCount > 0 || data.resolvedCount > 0)) {
+          badgeReview.innerText = (data.reviewCount || 0) + (data.resolvedCount || 0);
+          badgeReview.classList.remove('hidden');
+        } else {
+          badgeReview.classList.add('hidden');
+        }
+      }
+    }
+
+    async function loadResellerDashboard() {
+      const res = await fetch(`/api/reseller/dashboard/${currentUser.id}`);
+      const data = await res.json();
+
+      document.getElementById('dash-today-count').innerText = data.todaySalesCount;
+      document.getElementById('dash-today-cost').innerText = data.todayCostTotal.toFixed(2);
+      document.getElementById('dash-today-profit').innerText = data.todayProfit.toFixed(2);
+      document.getElementById('dash-total-profit').innerText = data.totalProfit.toFixed(2);
+    }
+
+    document.getElementById('form-change-pass').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('new-custom-pass').value;
+
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, newPassword })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        currentUser.mustChangePassword = false;
+        openAppView();
+      } else {
+        alert(data.error);
+      }
+    });
+
+    function logout() {
+      currentUser = null;
+      cart = [];
+      updateCartUI();
+      document.getElementById('view-app').classList.add('hidden');
+      document.getElementById('view-force-password').classList.add('hidden');
+      document.getElementById('view-login').classList.remove('hidden');
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+    }
+
+    function switchTab(tab) {
+      if ((tab === 'admin' || tab === 'admin-metrics' || tab === 'admin-inventory') && (!currentUser || currentUser.role !== 'admin')) {
+        tab = 'store';
+      }
+
+      document.getElementById('tab-store').classList.add('hidden');
+      document.getElementById('tab-orders').classList.add('hidden');
+      document.getElementById('tab-recharge').classList.add('hidden');
+      document.getElementById('tab-whatsapp').classList.add('hidden');
+      document.getElementById('tab-terms').classList.add('hidden');
+      document.getElementById('tab-support').classList.add('hidden');
+      document.getElementById('tab-admin-metrics').classList.add('hidden');
+      document.getElementById('tab-admin-inventory').classList.add('hidden');
+      document.getElementById('tab-admin').classList.add('hidden');
+
+      document.getElementById('tab-btn-store').className = "hover:text-white pb-1";
+      document.getElementById('tab-btn-orders').className = "hover:text-white pb-1";
+      document.getElementById('tab-btn-recharge').className = "hover:text-white pb-1";
+      document.getElementById('tab-btn-whatsapp').className = "hover:text-white pb-1";
+      document.getElementById('tab-btn-terms').className = "hover:text-white pb-1";
+      document.getElementById('tab-btn-support').className = "relative hover:text-white pb-1 flex items-center gap-1.5";
+      
+      if (currentUser && currentUser.role === 'admin') {
+        document.getElementById('tab-btn-admin-metrics').className = "hover:text-white pb-1";
+        document.getElementById('tab-btn-admin-inventory').className = "hover:text-white pb-1";
+        document.getElementById('tab-btn-admin').className = "hover:text-white pb-1";
+      }
+
+      if (tab === 'store') {
+        document.getElementById('tab-store').classList.remove('hidden');
+        document.getElementById('tab-btn-store').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadProducts();
+      } else if (tab === 'orders') {
+        document.getElementById('tab-orders').classList.remove('hidden');
+        document.getElementById('tab-btn-orders').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadUserOrders();
+      } else if (tab === 'recharge') {
+        document.getElementById('tab-recharge').classList.remove('hidden');
+        document.getElementById('tab-btn-recharge').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadRechargeTab();
+      } else if (tab === 'whatsapp') {
+        document.getElementById('tab-whatsapp').classList.remove('hidden');
+        document.getElementById('tab-btn-whatsapp').className = "text-white border-b-2 border-amber-500 pb-1";
+      } else if (tab === 'terms') {
+        document.getElementById('tab-terms').classList.remove('hidden');
+        document.getElementById('tab-btn-terms').className = "text-white border-b-2 border-amber-500 pb-1";
+      } else if (tab === 'support') {
+        document.getElementById('tab-support').classList.remove('hidden');
+        document.getElementById('tab-btn-support').className = "relative text-white border-b-2 border-amber-500 pb-1 flex items-center gap-1.5";
+        
+        if (currentUser.role !== 'admin') {
+          localStorage.setItem(`support_last_seen_${currentUser.id}`, Date.now());
+        }
+        document.getElementById('badge-support-open').classList.add('hidden');
+        document.getElementById('badge-support-review').classList.add('hidden');
+        loadSupportTickets();
+      } else if (tab === 'admin-metrics') {
+        document.getElementById('tab-admin-metrics').classList.remove('hidden');
+        document.getElementById('tab-btn-admin-metrics').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadAdminMetrics();
+        loadAdminSalesReport();
+      } else if (tab === 'admin-inventory') {
+        document.getElementById('tab-admin-inventory').classList.remove('hidden');
+        document.getElementById('tab-btn-admin-inventory').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadGroupedInventory();
+      } else if (tab === 'admin') {
+        document.getElementById('tab-admin').classList.remove('hidden');
+        document.getElementById('tab-btn-admin').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadAdminProductOptions();
+        loadUsersTable();
+        loadRechargeRequestsTable();
+      }
+    }
+
+    async function loadGroupedInventory() {
+      const res = await fetch('/api/admin/grouped-inventory');
+      const data = await res.json();
+      const tbody = document.getElementById('inventory-grouped-table-body');
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-slate-500">No hay cuentas ingresadas.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => {
+        const isFullSold = item.available_profiles === 0;
+        let statusBadge = `<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400 font-bold">Disponible (${item.available_profiles} perfiles libres)</span>`;
+
+        if (isFullSold) {
+          statusBadge = `<span class="px-2 py-0.5 rounded text-xs bg-red-600/30 text-red-400 border border-red-500/40 font-bold">⚠️ Cuenta completa en uso / Agotada</span>`;
+        }
+
+        return `
+          <tr class="border-b border-slate-800 hover:bg-slate-800/40">
+            <td class="p-3 font-bold text-amber-400">${item.platform_name}</td>
+            <td class="p-3 font-mono text-xs text-white">${item.email_account}</td>
+            <td class="p-3 font-mono text-xs">${item.password_account}</td>
+            <td class="p-3 font-bold text-emerald-400">${item.available_profiles} libres</td>
+            <td class="p-3 text-slate-400">${item.sold_profiles} ocupados</td>
+            <td class="p-3">${statusBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadProducts() {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      const grid = document.getElementById('products-grid');
+      
+      if(products.length === 0) {
+        grid.innerHTML = `<p class="text-slate-500 col-span-3">No hay productos en el catálogo.</p>`;
+        return;
+      }
+
+      grid.innerHTML = products.map(p => `
+        <div class="rounded-xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between overflow-hidden">
+          <div>
+            ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover rounded-lg mb-4 border border-slate-800">` : ''}
+            <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">${p.type}</span>
+            <h3 class="text-lg font-bold text-white mt-1">${p.name}</h3>
+            <div class="mt-4 text-xs text-slate-400 space-y-1">
+              <p>Stock disponible: <strong class="text-slate-200">${p.stock_count}</strong></p>
+              <p>Duración: <strong class="text-slate-200">30 días</strong></p>
+            </div>
+          </div>
+          <div class="mt-6 flex items-center justify-between border-t border-slate-800 pt-4 gap-2">
+            <span class="text-lg font-extrabold text-white">$${p.price.toFixed(2)} MXN</span>
+            <div class="flex gap-2">
+              ${currentUser && currentUser.role === 'admin' ? `
+                <button onclick="deleteProduct(${p.id})" class="rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-2.5 py-1.5 text-xs font-bold transition">Eliminar</button>
+              ` : ''}
+              <button onclick="addToCart(${p.id}, '${p.name}', ${p.price}, ${p.stock_count})" ${p.stock_count === 0 ? 'disabled' : ''} class="rounded-lg ${p.stock_count === 0 ? 'bg-slate-800 text-slate-500' : 'bg-amber-600 hover:bg-amber-500 text-white'} px-3 py-1.5 text-xs font-bold transition">
+                ${p.stock_count === 0 ? 'Agotado' : '+ Carrito'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addToCart(id, name, price, maxStock) {
+      const existing = cart.find(i => i.id === id);
+      if (existing) {
+        if (existing.quantity + 1 > maxStock) {
+          alert(`Límite alcanzado. Solo hay ${maxStock} disponibles en stock.`);
+          return;
+        }
+        existing.quantity += 1;
+      } else {
+        cart.push({ id, name, price, quantity: 1, maxStock });
+      }
+      updateCartUI();
+      alert(`"${name}" agregado al carrito.`);
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      document.getElementById('cart-count').innerText = count;
+
+      const container = document.getElementById('cart-items-list');
+      let total = 0;
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500">Tu carrito está vacío.</p>`;
+      } else {
+        container.innerHTML = cart.map((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+          return `
+            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-800">
               <div>
-                <span class="card-badge">${p.type}</span>
-                <div class="card-title">${p.name}</div>
-                <div style="font-size: 12px; color: #94a3b8;">Stock disponible: ${p.stock_count}</div>
+                <h4 class="text-sm font-bold text-white">${item.name}</h4>
+                <p class="text-xs text-slate-400">$${item.price.toFixed(2)} MXN c/u</p>
               </div>
-              <div>
-                <div class="card-price">$${parseFloat(p.price).toFixed(2)} MXN</div>
-                ${adminBtns}
+              <div class="flex items-center gap-2">
+                <input type="number" min="1" max="${item.maxStock}" value="${item.quantity}" onchange="changeCartQuantity(${index}, this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded p-1 text-center text-xs text-white">
+                <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-300 font-bold text-xs">✕</button>
               </div>
             </div>
           `;
-          grid.appendChild(card);
-        });
-      } catch (err) {
-        console.error('Error cargando productos:', err);
+        }).join('');
+      }
+
+      document.getElementById('cart-total-amount').innerText = total.toFixed(2);
+    }
+
+    function changeCartQuantity(index, newQty) {
+      const qty = parseInt(newQty);
+      if (isNaN(qty) || qty < 1) return;
+      if (qty > cart[index].maxStock) {
+        alert(`Stock máximo disponible: ${cart[index].maxStock}`);
+        cart[index].quantity = cart[index].maxStock;
+      } else {
+        cart[index].quantity = qty;
+      }
+      updateCartUI();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    function toggleCartModal() {
+      document.getElementById('modal-cart').classList.toggle('hidden');
+    }
+
+    async function checkoutCart() {
+      if (cart.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+      }
+
+      const cartItems = cart.map(i => ({ productId: i.id, quantity: i.quantity }));
+
+      const res = await fetch('/api/buy-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, cartItems })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("¡Compra procesada con éxito! Revisa tus accesos en 'Mis Pedidos'.");
+        cart = [];
+        updateCartUI();
+        toggleCartModal();
+        currentUser.balance = data.newBalance;
+        document.getElementById('user-balance').innerText = currentUser.balance.toFixed(2);
+        if (currentUser.role === 'reseller') loadResellerDashboard();
+        switchTab('orders');
+      } else {
+        alert(data.error);
       }
     }
 
-    function escapeQuotes(str) {
-      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    async function loadUserOrders() {
+      const res = await fetch(`/api/user/orders/${currentUser.id}`);
+      const orders = await res.json();
+      const container = document.getElementById('orders-list');
+      const ticketOrderSelect = document.getElementById('ticket-order-id');
+
+      if (ticketOrderSelect) {
+        ticketOrderSelect.innerHTML = '<option value="">Seleccionar orden...</option>' + 
+          orders.map(o => `<option value="${o.id}">${o.platform_name || o.product_name} (${o.profile_name}) - ID: ${o.unique_code || 'S/N'}</option>`).join('');
+      }
+
+      if (orders.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 col-span-3">Aún no has adquirido ninguna credencial.</p>`;
+        return;
+      }
+
+      container.innerHTML = orders.map(o => {
+        const isRed = o.is_near_expiration;
+        const msgWhatsApp = encodeURIComponent(`Hola! Tu servicio de ${o.platform_name || o.product_name} (${o.profile_name}) está por vencer en ${o.days_left} día(s). Recuerda realizar tu renovación para no perder el acceso.`);
+        const profit = (o.reseller_sale_price || 0) > 0 ? (o.reseller_sale_price - o.cost_price) : 0;
+
+        let credsHtml = '';
+        if (o.combo_parsed) {
+          credsHtml = o.combo_parsed.map(c => `
+            <div class="p-2 bg-slate-950 rounded border border-slate-800 text-xs space-y-0.5">
+              <span class="font-bold text-amber-400">[${c.platform}]</span>
+              <p class="text-slate-300">User: ${c.email}</p>
+              <p class="text-slate-300">Pass: ${c.password}</p>
+              <p class="text-slate-400">Perfil: ${c.profile}</p>
+            </div>
+          `).join('');
+        } else {
+          credsHtml = `
+            <div class="p-2 bg-slate-950 rounded border border-slate-800 text-xs space-y-0.5">
+              <p class="text-slate-300"><strong>Cuenta:</strong> ${o.email_account}</p>
+              <p class="text-slate-300"><strong>Clave:</strong> ${o.password_account}</p>
+              <p class="text-slate-400"><strong>Perfil:</strong> ${o.profile_name}</p>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="rounded-xl bg-slate-900 border ${isRed ? 'border-red-500/80 bg-red-950/10' : 'border-slate-800'} p-5 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-extrabold bg-slate-950 px-2 py-0.5 rounded text-amber-400 border border-slate-800">
+                  ID: ${o.unique_code || 'S/N'}
+                </span>
+                <span class="text-xs px-2 py-0.5 rounded font-bold ${isRed ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-300'}">
+                  ${o.days_left} días restantes
+                </span>
+              </div>
+              <h3 class="text-base font-bold text-white mb-2">${o.platform_name || o.product_name}</h3>
+              <div class="space-y-2 mb-3">
+                ${credsHtml}
+              </div>
+
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2 text-xs">
+                <div class="flex justify-between text-slate-400">
+                  <span>Costo Panel:</span>
+                  <strong class="text-white">$${o.cost_price.toFixed(2)} MXN</strong>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span class="text-slate-400">Vendido al Cliente:</span>
+                  <div class="flex gap-1 items-center">
+                    <span class="text-slate-500">$</span>
+                    <input type="number" step="0.01" value="${o.reseller_sale_price || ''}" id="sale-price-${o.id}" placeholder="0.00" class="w-16 bg-slate-900 border border-slate-700 rounded p-1 text-center text-white font-bold">
+                    <button onclick="saveSalePrice(${o.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold">💾</button>
+                  </div>
+                </div>
+                <div class="flex justify-between border-t border-slate-800 pt-1">
+                  <span class="font-bold text-slate-300">Tu Ganancia Neta:</span>
+                  <strong class="${profit > 0 ? 'text-emerald-400' : 'text-slate-500'} font-extrabold">$${profit.toFixed(2)} MXN</strong>
+                </div>
+              </div>
+            </div>
+
+            ${isRed ? `
+              <a href="https://wa.me/?text=${msgWhatsApp}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs text-center block transition">
+                📲 Avisar Cliente por WhatsApp
+              </a>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
     }
 
-    function openEditProductModal(id, name, type, price, imageUrl) {
-      document.getElementById('editProductId').value = id;
-      document.getElementById('editProductName').value = name;
-      document.getElementById('editProductType').value = type;
-      document.getElementById('editProductPrice').value = price;
-      document.getElementById('editProductUrl').value = (imageUrl && !imageUrl.startsWith('/uploads/')) ? imageUrl : '';
-      document.getElementById('editProductFile').value = '';
-      document.getElementById('editProductModal').style.display = 'flex';
+    async function saveSalePrice(stockId) {
+      const salePrice = document.getElementById(`sale-price-${stockId}`).value;
+      const res = await fetch('/api/reseller/set-sale-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stockId, salePrice })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        loadUserOrders();
+        loadResellerDashboard();
+      } else {
+        alert(data.error);
+      }
     }
 
-    function closeEditProductModal() {
-      document.getElementById('editProductModal').style.display = 'none';
+    async function loadSupportTickets() {
+      const url = currentUser.role === 'admin' ? '/api/support/tickets' : `/api/support/tickets/${currentUser.id}`;
+      const res = await fetch(url);
+      const tickets = await res.json();
+      const container = document.getElementById('tickets-list');
+
+      if (tickets.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 text-xs">No hay tickets de soporte registrados.</p>`;
+        return;
+      }
+
+      container.innerHTML = tickets.map(t => {
+        let badgeColor = "bg-red-600/20 text-red-400 border-red-500/30";
+        let statusLabel = "🔴 Abierto / Sin Asignar";
+
+        if (t.status === 'review') {
+          badgeColor = "bg-amber-500/20 text-amber-400 border-amber-500/30";
+          statusLabel = "🟡 En Revisión";
+        } else if (t.status === 'resolved') {
+          badgeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+          statusLabel = "🟢 Resuelto / Cerrado";
+        }
+
+        const formattedDate = new Date(t.created_at).toLocaleString('es-MX', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+        });
+
+        return `
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-amber-400 text-xs">#${t.id} - ${t.subject}</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold border ${badgeColor}">
+                ${statusLabel}
+              </span>
+            </div>
+
+            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80 space-y-2">
+              <p class="text-xs font-semibold text-slate-300">Reporte del Revendedor:</p>
+              <p class="text-xs text-slate-400">${t.comment}</p>
+              ${t.image_url ? `
+                <div class="pt-1">
+                  <a href="${t.image_url}" target="_blank" class="text-xs text-amber-400 hover:underline inline-block font-semibold mb-1">🖼️ Captura Adjunta por Revendedor</a>
+                  <img src="${t.image_url}" class="h-28 object-cover rounded-lg border border-slate-800">
+                </div>
+              ` : ''}
+            </div>
+
+            ${t.admin_comment || t.admin_image_url ? `
+              <div class="bg-emerald-950/20 p-3 rounded-lg border border-emerald-500/30 space-y-2">
+                <span class="text-xs font-bold text-emerald-400 uppercase">Respuesta / Estado del Administrador:</span>
+                ${t.admin_comment ? `<p class="text-xs text-slate-200 font-medium">${t.admin_comment}</p>` : ''}
+                ${t.admin_image_url ? `
+                  <div class="pt-1">
+                    <a href="${t.admin_image_url}" target="_blank" class="text-xs text-emerald-400 hover:underline inline-block font-semibold mb-1">🖼️ Comprobante Adjunto por Admin</a>
+                    <img src="${t.admin_image_url}" class="h-28 object-cover rounded-lg border border-emerald-500/30">
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <div class="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-900">
+              <span><strong>Revendedor:</strong> ${t.user_name || 'Revendedor'} (${t.user_email})</span>
+              <span><strong>Fecha/Hora:</strong> ${formattedDate}</span>
+            </div>
+
+            ${currentUser.role === 'admin' ? `
+              <div class="flex gap-2 pt-1">
+                <button onclick="openResolveModal(${t.id}, '${t.status}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 font-bold py-2 rounded-lg text-xs transition">
+                  ⚙️ Cambiar Estado / Responder
+                </button>
+                <button onclick="deleteSupportTicket(${t.id})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-bold px-3 py-2 rounded-lg text-xs transition">
+                  🗑️ Eliminar Ticket
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
     }
 
-    async function saveProductChanges() {
-      const id = document.getElementById('editProductId').value;
-      const name = document.getElementById('editProductName').value;
-      const type = document.getElementById('editProductType').value;
-      const price = document.getElementById('editProductPrice').value;
-      const imageUrl = document.getElementById('editProductUrl').value;
-      const fileInput = document.getElementById('editProductFile');
+    async function deleteSupportTicket(ticketId) {
+      if (!confirm(`¿Estás seguro de eliminar el Ticket #${ticketId}? Se borrarán también las imágenes adjuntas.`)) return;
+
+      try {
+        const res = await fetch(`/api/admin/support/tickets/${ticketId}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          loadSupportTickets();
+          checkSupportAlerts();
+        }
+      } catch (err) {
+        alert("Error al eliminar el ticket.");
+      }
+    }
+
+    function openResolveModal(ticketId, currentStatus) {
+      selectedTicketIdForResolve = ticketId;
+      document.getElementById('resolve-ticket-id').innerText = ticketId;
+      document.getElementById('resolve-admin-status').value = currentStatus === 'open' ? 'review' : currentStatus;
+      document.getElementById('resolve-admin-comment').value = '';
+      document.getElementById('resolve-admin-image').value = '';
+      document.getElementById('modal-resolve-ticket').classList.remove('hidden');
+    }
+
+    function closeResolveModal() {
+      document.getElementById('modal-resolve-ticket').classList.add('hidden');
+      selectedTicketIdForResolve = null;
+    }
+
+    document.getElementById('form-resolve-ticket').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedTicketIdForResolve) return;
+
+      const status = document.getElementById('resolve-admin-status').value;
+      const adminComment = document.getElementById('resolve-admin-comment').value;
+      const fileInput = document.getElementById('resolve-admin-image');
 
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('type', type);
-      formData.append('price', price);
-      formData.append('imageUrl', imageUrl);
+      formData.append('ticketId', selectedTicketIdForResolve);
+      formData.append('status', status);
+      formData.append('adminComment', adminComment);
 
       if (fileInput.files.length > 0) {
-        formData.append('productImageFile', fileInput.files[0]);
+        formData.append('adminTicketImage', fileInput.files[0]);
       }
 
       try {
-        const res = await fetch(`/api/admin/products/${id}`, {
-          method: 'PUT',
+        const res = await fetch('/api/admin/support/update-status', {
+          method: 'POST',
           body: formData
         });
+
         const data = await res.json();
+        alert(data.message || data.error);
+
         if (res.ok) {
-          alert(data.message);
-          closeEditProductModal();
-          loadProducts();
-        } else {
-          alert(data.error || 'Error al actualizar el producto');
+          closeResolveModal();
+          loadSupportTickets();
+          checkSupportAlerts();
         }
       } catch (err) {
-        alert('Error de conexión: ' + err.message);
+        alert("Error al actualizar ticket.");
+      }
+    });
+
+    document.getElementById('form-create-ticket').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const orderId = document.getElementById('ticket-order-id').value;
+      const subject = document.getElementById('ticket-subject').value;
+      const comment = document.getElementById('ticket-comment').value;
+      const fileInput = document.getElementById('ticket-image-file');
+
+      const formData = new FormData();
+      formData.append('userId', currentUser.id);
+      formData.append('orderId', orderId);
+      formData.append('subject', subject);
+      formData.append('comment', comment);
+      
+      if (fileInput.files.length > 0) {
+        formData.append('ticketImage', fileInput.files[0]);
+      }
+
+      const res = await fetch('/api/support/tickets', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+      if (res.ok) {
+        e.target.reset();
+        loadSupportTickets();
+        checkSupportAlerts();
+      }
+    });
+
+    async function loadAdminMetrics() {
+      const res = await fetch('/api/admin/metrics');
+      const data = await res.json();
+
+      const rankingBody = document.getElementById('ranking-table-body');
+      if (data.resellerRanking.length === 0) {
+        rankingBody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500">No hay revendedores.</td></tr>`;
+      } else {
+        rankingBody.innerHTML = data.resellerRanking.map(r => `
+          <tr class="border-b border-slate-800">
+            <td class="p-3 font-bold text-white">${r.name || 'Revendedor'} (${r.email})</td>
+            <td class="p-3 font-bold text-emerald-400">$${r.balance.toFixed(2)} MXN</td>
+            <td class="p-3">${r.total_purchases} cuentas</td>
+            <td class="p-3 font-black text-amber-400">$${r.total_spent.toFixed(2)} MXN</td>
+          </tr>
+        `).join('');
+      }
+
+      const stockBody = document.getElementById('all-stock-table-body');
+      if (data.allStock.length === 0) {
+        stockBody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500">No hay stock cargado.</td></tr>`;
+      } else {
+        stockBody.innerHTML = data.allStock.map(s => `
+          <tr class="border-b border-slate-800 hover:bg-slate-800/40">
+            <td class="p-3 font-bold text-amber-400">${s.unique_code || '#'+s.id}</td>
+            <td class="p-3 font-bold text-white">${s.platform_name || s.product_name}</td>
+            <td class="p-3 font-mono text-xs">${s.email_account}</td>
+            <td class="p-3 font-mono text-xs">${s.password_account}</td>
+            <td class="p-3 text-xs">${s.profile_name}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${s.status === 'available' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">${s.status === 'available' ? 'Disponible' : 'Vendido'}</span></td>
+            <td class="p-3 text-xs font-semibold">${s.assigned_user || '-'}</td>
+          </tr>
+        `).join('');
       }
     }
 
-    async function deleteProduct(id) {
-      if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
+    async function deleteProduct(productId) {
+      if(!confirm("¿Estás seguro de eliminar este producto y todo su stock asociado?")) return;
+      const res = await fetch(`/api/admin/products/${productId}`, { method: 'DELETE' });
+      const data = await res.json();
+      alert(data.message || data.error);
+      loadProducts();
+    }
+
+    async function loadAdminProductOptions() {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      const select = document.getElementById('stock-product-select');
+      select.innerHTML = '<option value="">Selecciona Producto/Plataforma...</option>' + 
+        products.map(p => `<option value="${p.id}" data-type="${p.type}" data-name="${p.name}">${p.name} (${p.type})</option>`).join('');
+    }
+
+    function updatePlatformInputs() {
+      const select = document.getElementById('stock-product-select');
+      const selectedOption = select.options[select.selectedIndex];
+      const platformName = selectedOption.getAttribute('data-name') || '';
+      const productType = selectedOption.getAttribute('data-type') || '';
+      
+      const comboBadge = document.getElementById('combo-badge');
+      if (productType === 'Combo') {
+        comboBadge.classList.remove('hidden');
+      } else {
+        comboBadge.classList.add('hidden');
+      }
+
+      const platformInputs = document.querySelectorAll('.stock-platform');
+      platformInputs.forEach(input => {
+        if (platformName) input.value = platformName;
+      });
+    }
+
+    function addStockRow() {
+      const container = document.getElementById('stock-inputs-container');
+      const count = container.children.length + 1;
+      
+      const select = document.getElementById('stock-product-select');
+      const selectedOption = select.options[select.selectedIndex];
+      const currentPlatform = selectedOption ? selectedOption.getAttribute('data-name') || '' : '';
+
+      const div = document.createElement('div');
+      div.className = "stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2";
+      div.innerHTML = `
+        <input type="text" placeholder="Plataforma (ej: Disney / HBO)" value="${currentPlatform}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+        <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" placeholder="Contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+          <input type="text" placeholder="Perfil (ej. Perfil ${count})" value="Perfil ${count}" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    async function loadUsersTable() {
+      const res = await fetch('/api/admin/users');
+      allUsersCache = await res.json();
+      renderUsersTable(allUsersCache);
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('users-table-body');
+      
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500">No se encontraron revendedores.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+          <td class="p-3">${u.id}</td>
+          <td class="p-3 font-bold text-white">${u.name || 'Revendedor'}</td>
+          <td class="p-3 font-medium text-slate-300">${u.email}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}">${u.role}</span></td>
+          <td class="p-3 font-bold text-emerald-400">$${u.balance.toFixed(2)} MXN</td>
+          <td class="p-3 text-xs">${u.must_change_password ? '<span class="text-amber-400">Pendiente cambio</span>' : '<span class="text-slate-500">Normal</span>'}</td>
+          <td class="p-3 flex gap-2">
+            ${u.role !== 'admin' ? `
+              <button onclick="quickSelectUser('${u.email}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded">Ajustar Saldo</button>
+              <button onclick="openResetPassModal(${u.id}, '${u.email}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded">Reset Pass</button>
+              <button onclick="openDeleteUserModal(${u.id}, '${u.email}')" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 px-2 py-1 rounded transition font-bold">Eliminar</button>
+            ` : '<span class="text-xs text-slate-600 italic">Protegido</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openResetPassModal(userId, email) {
+      pendingResetUserId = userId;
+      document.getElementById('reset-pass-desc').innerText = `Establece la contraseña temporal para el usuario: ${email}`;
+      document.getElementById('reset-new-pass-input').value = '';
+      document.getElementById('modal-reset-pass').classList.remove('hidden');
+    }
+
+    function closeResetPassModal() {
+      document.getElementById('modal-reset-pass').classList.add('hidden');
+      pendingResetUserId = null;
+    }
+
+    async function executeResetPassword() {
+      const tempPassword = document.getElementById('reset-new-pass-input').value;
+      if (!tempPassword || tempPassword.trim() === '') {
+        alert("Ingresa una contraseña válida.");
+        return;
+      }
+
+      if (!pendingResetUserId) return;
+
       try {
-        const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+        const res = await fetch('/api/admin/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: pendingResetUserId, tempPassword })
+        });
+
         const data = await res.json();
+        alert(data.message || data.error);
+
         if (res.ok) {
-          alert(data.message);
-          loadProducts();
-        } else {
-          alert(data.error || 'Error al eliminar');
+          closeResetPassModal();
+          loadUsersTable();
         }
       } catch (err) {
-        alert('Error de conexión: ' + err.message);
+        alert("Error al restablecer la contraseña.");
       }
     }
 
-    function showSection(secId) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-      document.getElementById(secId).classList.add('active');
+    function openDeleteUserModal(userId, email) {
+      pendingDeleteUserId = userId;
+      document.getElementById('delete-user-desc').innerText = `¿Estás seguro de eliminar al revendedor ${email}? Esta acción no se puede deshacer.`;
+      document.getElementById('delete-user-admin-pass').value = '';
+      document.getElementById('modal-delete-user').classList.remove('hidden');
     }
 
-    function logout() {
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      window.location.reload();
+    function closeDeleteUserModal() {
+      document.getElementById('modal-delete-user').classList.add('hidden');
+      pendingDeleteUserId = null;
     }
 
-    // Inicialización
-    loadProducts();
+    async function executeDeleteUser() {
+      const adminPassword = document.getElementById('delete-user-admin-pass').value;
+
+      if (!adminPassword) {
+        alert("Ingresa tu contraseña de Administrador.");
+        return;
+      }
+
+      if (!pendingDeleteUserId) return;
+
+      try {
+        const res = await fetch('/api/admin/delete-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminPassword, userId: pendingDeleteUserId })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          closeDeleteUserModal();
+          loadUsersTable();
+          loadAdminMetrics();
+        }
+      } catch (err) {
+        alert("Error de conexión al eliminar usuario.");
+      }
+    }
+
+    function filterUsersTable() {
+      const query = document.getElementById('search-user-input').value.toLowerCase();
+      const filtered = allUsersCache.filter(u => 
+        (u.name || '').toLowerCase().includes(query) || 
+        u.email.toLowerCase().includes(query) || 
+        u.id.toString().includes(query)
+      );
+      renderUsersTable(filtered);
+    }
+
+    function quickSelectUser(email) {
+      document.getElementById('recharge-email').value = email;
+      document.getElementById('recharge-amount').focus();
+    }
+
+    document.getElementById('form-create-user').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('new-user-name').value;
+      const email = document.getElementById('new-user-email').value;
+      const password = document.getElementById('new-user-pass').value;
+
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+      if(res.ok) {
+        e.target.reset();
+        loadUsersTable();
+        loadAdminMetrics();
+      }
+    });
+
+    document.getElementById('form-create-product').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('prod-name').value;
+      const type = document.getElementById('prod-type').value;
+      const price = document.getElementById('prod-price').value;
+      const imageUrl = document.getElementById('prod-image').value;
+      const fileInput = document.getElementById('prod-image-file');
+
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('type', type);
+        formData.append('price', price);
+        formData.append('imageUrl', imageUrl || '');
+
+        if (fileInput && fileInput.files.length > 0) {
+          formData.append('productImageFile', fileInput.files[0]);
+        }
+
+        const res = await fetch('/api/admin/products', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          e.target.reset();
+          loadProducts();
+        }
+      } catch (err) {
+        alert("Error de conexión al crear el producto.");
+      }
+    });
+
+    document.getElementById('form-add-stock').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const select = document.getElementById('stock-product-select');
+      const productId = select.value;
+      const selectedOption = select.options[select.selectedIndex];
+      const productType = selectedOption ? selectedOption.getAttribute('data-type') : '';
+      
+      if (!productId) {
+        alert("Por favor selecciona un producto o plataforma.");
+        return;
+      }
+
+      const rows = document.querySelectorAll('.stock-item-row');
+      const items = [];
+      
+      rows.forEach(row => {
+        items.push({
+          platform: row.querySelector('.stock-platform').value,
+          email: row.querySelector('.stock-email').value,
+          password: row.querySelector('.stock-pass').value,
+          profile: row.querySelector('.stock-profile').value
+        });
+      });
+
+      const res = await fetch('/api/admin/stock/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productId, 
+          isCombo: productType === 'Combo', 
+          items 
+        })
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+      
+      if(res.ok) {
+        document.getElementById('stock-inputs-container').innerHTML = `
+          <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+            <input type="text" placeholder="Plataforma (ej: Disney / HBO)" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+            <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" placeholder="Contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+              <input type="text" placeholder="Perfil (ej. Perfil 1)" value="Perfil 1" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+            </div>
+          </div>
+        `;
+        e.target.reset();
+        document.getElementById('combo-badge').classList.add('hidden');
+        loadProducts();
+        loadAdminMetrics();
+      }
+    });
   </script>
 </body>
 </html>
