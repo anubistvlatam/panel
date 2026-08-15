@@ -16,7 +16,7 @@
     <div class="grid w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 md:grid-cols-2 shadow-2xl">
       <div class="flex flex-col justify-between bg-slate-950 p-8 border-r border-slate-800">
         <div>
-          <!-- 2. BRANDING EN LA TARJETA DE LOGIN -->
+          <!-- BRANDING EN LA TARJETA DE LOGIN -->
           <div id="brand-login-logo-container" class="mb-4"></div>
           <h1 id="brand-login-title" class="text-3xl font-extrabold tracking-wider text-amber-500">CPANEL</h1>
           <p class="mt-6 text-xl font-medium text-slate-200">La energía del éxito digital</p>
@@ -233,7 +233,7 @@
         </div>
       </div>
 
-      <!-- TÉRMINOS Y CONDICIONES -->
+      <!-- TÉRMINOS Y CONDICIONES (CON PANEL DE EDICIÓN EXCLUSIVO ADMIN) -->
       <div id="tab-terms" class="hidden space-y-8">
         <h2 class="text-2xl font-bold text-amber-500">Términos y Condiciones del Servicio de Streaming</h2>
         
@@ -241,7 +241,7 @@
           <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
             <h3 class="text-lg font-bold text-amber-400 border-b border-slate-800 pb-2">📌 Reglas Generales de Uso</h3>
             
-            <div class="space-y-3 text-xs text-slate-300">
+            <div id="terms-content-display" class="space-y-3 text-xs text-slate-300">
               <p>• <strong>Garantía del Servicio:</strong> El servicio cuenta con <strong>25 DÍAS DE GARANTÍA</strong> a partir de la fecha de entrega. Transcurrido ese periodo, no se brindará soporte ni reemplazos.</p>
               <p>• <strong>Perfiles Compartidos:</strong> Las cuentas corresponden a perfiles asignados. Se debe utilizar únicamente el perfil asignado.</p>
               <p>• <strong>Un Dispositivo a la Vez:</strong> Puedes iniciar sesión en varios dispositivos, pero sólo reproducir en 1 dispositivo simultáneamente.</p>
@@ -262,8 +262,36 @@
           </div>
 
           <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-center">
-            <img src="/image_d2e6e3.jpg" alt="Términos y Condiciones de Streaming" class="rounded-xl max-h-[600px] object-contain shadow-2xl">
+            <div id="terms-image-container">
+              <img src="/image_d2e6e3.jpg" alt="Términos y Condiciones de Streaming" class="rounded-xl max-h-[600px] object-contain shadow-2xl">
+            </div>
           </div>
+        </div>
+
+        <!-- FORMULARIO DE EDICIÓN SOLO VISIBLE PARA ADMIN -->
+        <div id="admin-terms-editor" class="hidden bg-slate-900 border border-amber-500/40 p-6 rounded-2xl space-y-4">
+          <h3 class="text-lg font-bold text-amber-400 border-b border-slate-800 pb-2">✏️ Editar Términos y Condiciones (Exclusivo Administrador)</h3>
+          <form id="form-update-terms" class="space-y-3">
+            <div>
+              <label class="block text-xs uppercase text-slate-400 mb-1">Texto de Términos (HTML o Texto Libre)</label>
+              <textarea id="terms-text-input" rows="6" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Subir Imagen desde PC</label>
+                <input type="file" id="terms-file-input" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-amber-600 file:text-white bg-slate-800 border border-slate-700 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">O Pega URL de Imagen</label>
+                <input type="url" id="terms-url-input" placeholder="https://ejemplo.com/imagen.png" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-lg text-xs transition uppercase">
+              Guardar Términos e Imagen
+            </button>
+          </form>
         </div>
       </div>
 
@@ -406,7 +434,7 @@
             </form>
           </div>
 
-          <!-- 1 & 3. PERSONALIZAR MARCA CON SELECTOR DE TAMAÑO NOTORIO Y MODO DE VISUALIZACIÓN (TEXTO, LOGO O AMBOS) -->
+          <!-- PERSONALIZAR MARCA -->
           <div data-module-id="mod-2" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">🎨 Personalizar Marca (Nombre y Logo)</h3>
@@ -433,7 +461,6 @@
                 </div>
               </div>
 
-              <!-- 3. MODO DE MOSTRAR MARCA -->
               <div>
                 <label class="block text-[10px] uppercase text-slate-400 mb-1">Modo de Visualización de Marca</label>
                 <select id="branding-display-mode" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none font-bold">
@@ -599,7 +626,7 @@
 
         </div>
 
-        <!-- LISTA DE REVENDEDORES REGISTRADOS CON TABLA FIJA Y SCROLL INTERNO -->
+        <!-- LISTA DE REVENDEDORES REGISTRADOS -->
         <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 class="text-lg font-bold text-white">Lista de Revendedores Registrados</h3>
@@ -627,6 +654,54 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- MODAL EDITAR PRODUCTO (ADMIN) -->
+  <div id="modal-edit-product" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-amber-500">✏️ Editar Producto del Catálogo</h3>
+        <button onclick="closeEditProductModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+
+      <input type="hidden" id="edit-prod-id">
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Nombre del Producto</label>
+        <input type="text" id="edit-prod-name" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Tipo</label>
+        <select id="edit-prod-type" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+          <option value="Perfil">Perfil</option>
+          <option value="Cuenta">Cuenta Completa</option>
+          <option value="Combo">Combo</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Precio / Costo ($ MXN)</label>
+        <input type="number" step="0.01" id="edit-prod-price" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500">
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Imagen por URL Web</label>
+        <input type="url" id="edit-prod-image-url" placeholder="https://ejemplo.com/imagen.png" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+      </div>
+
+      <div class="text-center text-[10px] text-slate-500 font-bold uppercase">— O subir nueva imagen desde PC —</div>
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Subir Archivo desde PC</label>
+        <input type="file" id="edit-prod-image-file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-amber-600 file:text-white bg-slate-800 border border-slate-700 rounded-lg">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeEditProductModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeSaveProduct()" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-xs font-bold">Guardar Cambios</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL APROBAR/RECHAZAR RECARGA -->
@@ -786,10 +861,15 @@
         document.getElementById('brand-login-title').innerText = brandTitle;
         document.getElementById('brand-header-title').innerText = brandTitle;
 
-        // 3. CONTROL DE VISUALIZACIÓN: TEXTO, LOGO O AMBOS
+        // TÉRMINOS Y CONDICIONES PERSISTENTES
+        if (data.terms_text) {
+          document.getElementById('terms-content-display').innerHTML = data.terms_text;
+        }
+        if (data.terms_image) {
+          document.getElementById('terms-image-container').innerHTML = `<img src="${data.terms_image}" alt="Términos" class="rounded-xl max-h-[600px] object-contain shadow-2xl">`;
+        }
+
         const displayMode = data.brand_display_mode || 'both';
-        
-        // Header
         const headerTitleEl = document.getElementById('brand-header-title');
         const logoContainer = document.getElementById('brand-logo-container');
 
@@ -803,16 +883,13 @@
           logoContainer.innerHTML = '';
           document.getElementById('brand-login-logo-container').innerHTML = '';
         } else if (data.brand_logo && data.brand_logo.trim() !== '') {
-          // 1. TAMAÑOS EXPANDIDOS
-          let heightPx = "110px"; // Mediano
-          if (data.brand_logo_size === 'h-7') heightPx = "65px"; // Pequeño
-          if (data.brand_logo_size === 'h-14') heightPx = "160px"; // Grande
+          let heightPx = "110px";
+          if (data.brand_logo_size === 'h-7') heightPx = "65px";
+          if (data.brand_logo_size === 'h-14') heightPx = "160px";
 
           const imgHtml = `<img src="${data.brand_logo}" alt="Logo" style="height: ${heightPx} !important; width: auto !important; max-height: none !important;" class="object-contain rounded-lg border border-amber-500/30">`;
-          
           logoContainer.innerHTML = imgHtml;
           
-          // 2. BRANDING EN LA TARJETA DE LOGIN
           const loginLogoContainer = document.getElementById('brand-login-logo-container');
           if (loginLogoContainer) {
             loginLogoContainer.innerHTML = imgHtml;
@@ -1024,6 +1101,7 @@
         document.getElementById('tab-btn-admin').classList.remove('hidden');
         document.getElementById('tab-btn-admin-metrics').classList.remove('hidden');
         document.getElementById('tab-btn-admin-inventory').classList.remove('hidden');
+        document.getElementById('admin-terms-editor').classList.remove('hidden');
         document.getElementById('tab-btn-recharge').classList.add('hidden');
         document.getElementById('reseller-dashboard-panel').classList.add('hidden');
         document.getElementById('admin-new-name').value = currentUser.name || '';
@@ -1033,6 +1111,7 @@
         document.getElementById('tab-btn-admin').classList.add('hidden');
         document.getElementById('tab-btn-admin-metrics').classList.add('hidden');
         document.getElementById('tab-btn-admin-inventory').classList.add('hidden');
+        document.getElementById('admin-terms-editor').classList.add('hidden');
         document.getElementById('tab-btn-recharge').classList.remove('hidden');
         document.getElementById('reseller-dashboard-panel').classList.remove('hidden');
         document.getElementById('balance-badge').innerHTML = `Saldo: $<span id="user-balance">${currentUser.balance.toFixed(2)}</span> MXN`;
@@ -1183,6 +1262,37 @@
         }
       } catch (err) {
         alert("Error actualizando la marca.");
+      }
+    });
+
+    // EDITAR TÉRMINOS Y CONDICIONES (ADMIN)
+    document.getElementById('form-update-terms').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const termsText = document.getElementById('terms-text-input').value;
+      const termsImageUrl = document.getElementById('terms-url-input').value;
+      const fileInput = document.getElementById('terms-file-input');
+
+      try {
+        const formData = new FormData();
+        formData.append('termsText', termsText);
+        formData.append('termsImageUrl', termsImageUrl);
+        if (fileInput && fileInput.files.length > 0) {
+          formData.append('termsImageFile', fileInput.files[0]);
+        }
+
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          loadGlobalBranding();
+        }
+      } catch (err) {
+        alert("Error al guardar los términos.");
       }
     });
 
@@ -1383,7 +1493,6 @@
       }
     }
 
-    // 2. CONTEO DE NOTIFICACIONES ESTRICTO (SI ES 0 OCULTA COMPLETAMENTE)
     async function checkSupportAlerts() {
       if (!currentUser) return;
       const activeTabIsSupport = !document.getElementById('tab-support').classList.contains('hidden');
@@ -1587,30 +1696,86 @@
         return;
       }
 
-      grid.innerHTML = products.map(p => `
-        <div class="rounded-xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between overflow-hidden">
-          <div>
-            ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover rounded-lg mb-4 border border-slate-800">` : ''}
-            <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">${p.type}</span>
-            <h3 class="text-lg font-bold text-white mt-1">${p.name}</h3>
-            <div class="mt-4 text-xs text-slate-400 space-y-1">
-              <p>Stock disponible: <strong class="text-slate-200">${p.stock_count}</strong></p>
-              <p>Duración: <strong class="text-slate-200">30 días</strong></p>
+      grid.innerHTML = products.map(p => {
+        const pNameEsc = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const pImgEsc = (p.image_url || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        return `
+          <div class="rounded-xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between overflow-hidden">
+            <div>
+              ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover rounded-lg mb-4 border border-slate-800">` : ''}
+              <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">${p.type}</span>
+              <h3 class="text-lg font-bold text-white mt-1">${p.name}</h3>
+              <div class="mt-4 text-xs text-slate-400 space-y-1">
+                <p>Stock disponible: <strong class="text-slate-200">${p.stock_count}</strong></p>
+                <p>Duración: <strong class="text-slate-200">30 días</strong></p>
+              </div>
+            </div>
+            <div class="mt-6 flex items-center justify-between border-t border-slate-800 pt-4 gap-2 flex-wrap">
+              <span class="text-lg font-extrabold text-white">$${p.price.toFixed(2)} MXN</span>
+              <div class="flex gap-1.5 items-center">
+                ${currentUser && currentUser.role === 'admin' ? `
+                  <button onclick="openEditProductModal(${p.id}, '${pNameEsc}', '${p.type}', ${p.price}, '${pImgEsc}')" class="rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-2.5 py-1.5 text-xs font-bold transition">✏️ Editar</button>
+                  <button onclick="deleteProduct(${p.id})" class="rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-2.5 py-1.5 text-xs font-bold transition">Eliminar</button>
+                ` : ''}
+                <button onclick="addToCart(${p.id}, '${pNameEsc}', ${p.price}, ${p.stock_count})" ${p.stock_count === 0 ? 'disabled' : ''} class="rounded-lg ${p.stock_count === 0 ? 'bg-slate-800 text-slate-500' : 'bg-amber-600 hover:bg-amber-500 text-white'} px-3 py-1.5 text-xs font-bold transition">
+                  ${p.stock_count === 0 ? 'Agotado' : '+ Carrito'}
+                </button>
+              </div>
             </div>
           </div>
-          <div class="mt-6 flex items-center justify-between border-t border-slate-800 pt-4 gap-2">
-            <span class="text-lg font-extrabold text-white">$${p.price.toFixed(2)} MXN</span>
-            <div class="flex gap-2">
-              ${currentUser && currentUser.role === 'admin' ? `
-                <button onclick="deleteProduct(${p.id})" class="rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-2.5 py-1.5 text-xs font-bold transition">Eliminar</button>
-              ` : ''}
-              <button onclick="addToCart(${p.id}, '${p.name}', ${p.price}, ${p.stock_count})" ${p.stock_count === 0 ? 'disabled' : ''} class="rounded-lg ${p.stock_count === 0 ? 'bg-slate-800 text-slate-500' : 'bg-amber-600 hover:bg-amber-500 text-white'} px-3 py-1.5 text-xs font-bold transition">
-                ${p.stock_count === 0 ? 'Agotado' : '+ Carrito'}
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    function openEditProductModal(id, name, type, price, imageUrl) {
+      document.getElementById('edit-prod-id').value = id;
+      document.getElementById('edit-prod-name').value = name;
+      document.getElementById('edit-prod-type').value = type;
+      document.getElementById('edit-prod-price').value = price;
+      document.getElementById('edit-prod-image-url').value = (imageUrl && !imageUrl.startsWith('/uploads/')) ? imageUrl : '';
+      document.getElementById('edit-prod-image-file').value = '';
+      document.getElementById('modal-edit-product').classList.remove('hidden');
+    }
+
+    function closeEditProductModal() {
+      document.getElementById('modal-edit-product').classList.add('hidden');
+    }
+
+    async function executeSaveProduct() {
+      const id = document.getElementById('edit-prod-id').value;
+      const name = document.getElementById('edit-prod-name').value;
+      const type = document.getElementById('edit-prod-type').value;
+      const price = document.getElementById('edit-prod-price').value;
+      const imageUrl = document.getElementById('edit-prod-image-url').value;
+      const fileInput = document.getElementById('edit-prod-image-file');
+
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('type', type);
+        formData.append('price', price);
+        formData.append('imageUrl', imageUrl);
+
+        if (fileInput.files.length > 0) {
+          formData.append('productImageFile', fileInput.files[0]);
+        }
+
+        const res = await fetch(`/api/admin/products/${id}`, {
+          method: 'PUT',
+          body: formData
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          closeEditProductModal();
+          loadProducts();
+        }
+      } catch (err) {
+        alert("Error al actualizar el producto.");
+      }
     }
 
     function addToCart(id, name, price, maxStock) {
@@ -1725,12 +1890,19 @@
         return;
       }
 
+      const brandTitle = globalConfigCache.brand_name || 'CPANEL';
+
       container.innerHTML = orders.map(o => {
         const isRed = o.is_near_expiration;
         const msgWhatsApp = encodeURIComponent(`Hola! Tu servicio de ${o.platform_name || o.product_name} (${o.profile_name}) está por vencer en ${o.days_left} día(s). Recuerda realizar tu renovación para no perder el acceso.`);
         const profit = (o.reseller_sale_price || 0) > 0 ? (o.reseller_sale_price - o.cost_price) : 0;
 
+        const purchaseFormatted = o.purchase_date_formatted || '15/08/2026';
+        const expirationFormatted = o.expiration_date_formatted || '15/09/2026';
+
         let credsHtml = '';
+        let textToCopy = '';
+
         if (o.combo_parsed) {
           credsHtml = o.combo_parsed.map(c => `
             <div class="p-2 bg-slate-950 rounded border border-slate-800 text-xs space-y-0.5">
@@ -1740,6 +1912,9 @@
               <p class="text-slate-400">Perfil: ${c.profile}</p>
             </div>
           `).join('');
+
+          const comboDetails = o.combo_parsed.map(c => `• ${c.platform} -> User: ${c.email} | Pass: ${c.password} | Perfil: ${c.profile}`).join('\n');
+          textToCopy = `📌 *${brandTitle}*\nServicio: ${o.platform_name || o.product_name}\n${comboDetails}\nCompra: ${purchaseFormatted}\nVence: ${expirationFormatted}\n\nGracias por tu compra.`;
         } else {
           credsHtml = `
             <div class="p-2 bg-slate-950 rounded border border-slate-800 text-xs space-y-0.5">
@@ -1748,7 +1923,11 @@
               <p class="text-slate-400"><strong>Perfil:</strong> ${o.profile_name}</p>
             </div>
           `;
+
+          textToCopy = `📌 *${brandTitle}*\nServicio: ${o.platform_name || o.product_name}\nCorreo: ${o.email_account}\nClave: ${o.password_account}\nPerfil: ${o.profile_name || 'Acceso'}\nCompra: ${purchaseFormatted}\nVence: ${expirationFormatted}\n\nGracias por tu compra.`;
         }
+
+        const textToCopyEsc = textToCopy.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
 
         return `
           <div class="rounded-xl bg-slate-900 border ${isRed ? 'border-red-500/80 bg-red-950/10' : 'border-slate-800'} p-5 flex flex-col justify-between space-y-4">
@@ -1761,10 +1940,21 @@
                   ${o.days_left} días restantes
                 </span>
               </div>
+
+              <!-- FECHA DE COMPRA Y VENCIMIENTO DE LA MUESTRA -->
+              <div class="p-2 bg-slate-950 rounded border border-slate-800/80 text-[11px] text-amber-400 font-bold mb-3 flex justify-between">
+                <span>📅 Compra: ${purchaseFormatted}</span>
+                <span>⏳ Vence: ${expirationFormatted}</span>
+              </div>
+
               <h3 class="text-base font-bold text-white mb-2">${o.platform_name || o.product_name}</h3>
               <div class="space-y-2 mb-3">
                 ${credsHtml}
               </div>
+
+              <button onclick="copyDeliveryData('${textToCopyEsc}')" class="w-full bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 font-bold py-2 rounded-lg text-xs transition mb-3">
+                📋 Copiar Datos de Entrega
+              </button>
 
               <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2 text-xs">
                 <div class="flex justify-between text-slate-400">
@@ -1794,6 +1984,15 @@
           </div>
         `;
       }).join('');
+    }
+
+    function copyDeliveryData(text) {
+      const cleanText = text.replace(/\\n/g, '\n');
+      navigator.clipboard.writeText(cleanText).then(() => {
+        alert("¡Datos copados al portapapeles con éxito!");
+      }).catch(err => {
+        alert("Error al copiar datos.");
+      });
     }
 
     async function saveSalePrice(stockId) {
@@ -2005,23 +2204,6 @@
             <td class="p-3 font-bold text-emerald-400">$${r.balance.toFixed(2)} MXN</td>
             <td class="p-3">${r.total_purchases} cuentas</td>
             <td class="p-3 font-black text-amber-400">$${r.total_spent.toFixed(2)} MXN</td>
-          </tr>
-        `).join('');
-      }
-
-      const stockBody = document.getElementById('all-stock-table-body');
-      if (data.allStock.length === 0) {
-        stockBody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500">No hay stock cargado.</td></tr>`;
-      } else {
-        stockBody.innerHTML = data.allStock.map(s => `
-          <tr class="border-b border-slate-800 hover:bg-slate-800/40">
-            <td class="p-3 font-bold text-amber-400">${s.unique_code || '#'+s.id}</td>
-            <td class="p-3 font-bold text-white">${s.platform_name || s.product_name}</td>
-            <td class="p-3 font-mono text-xs">${s.email_account}</td>
-            <td class="p-3 font-mono text-xs">${s.password_account}</td>
-            <td class="p-3 text-xs">${s.profile_name}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${s.status === 'available' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}">${s.status === 'available' ? 'Disponible' : 'Vendido'}</span></td>
-            <td class="p-3 text-xs font-semibold">${s.assigned_user || '-'}</td>
           </tr>
         `).join('');
       }
