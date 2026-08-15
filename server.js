@@ -8,7 +8,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
-const Brevo = require('@getbrevo/brevo');
 const db = require('./database');
 
 const app = express();
@@ -24,33 +23,44 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// CONFIGURACIÓN DE BREVO PARA ENVÍO GRATUITO A CUALQUIER CORREO
-const apiInstance = new Brevo.TransactionalEmailsApi();
-const apiKey = apiInstance.authentications['apiKey'];
-apiKey.apiKey = process.env.BREVO_API_KEY || 'xkeysib-917acae54fd28a2b2d2fbb0f3c2ef353c9d2f272880';
-
+// CONFIGURACIÓN DE ENVÍO DE CORREO RECUPERACIÓN VÍA API HTTP BREVO
 async function sendAdminRecoveryEmail(toEmail, tempPassword) {
-  try {
-    const sendSmtpEmail = new Brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = "🔑 Recuperación de Contraseña de Administrador";
-    sendSmtpEmail.htmlContent = `
-      <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #f59e0b;">Recuperación de Administrador</h2>
-        <p>Has solicitado restablecer tu acceso como <strong>Administrador</strong> del panel.</p>
-        <p>Tu contraseña temporal de acceso es:</p>
-        <div style="background-color: #1e293b; padding: 15px; font-size: 22px; font-weight: bold; color: #10b981; letter-spacing: 2px; text-align: center; border-radius: 8px; margin: 15px 0;">
-          ${tempPassword}
-        </div>
-        <p>Ingresa al panel con esta clave temporal y el sistema te pedirá definir tu nueva contraseña.</p>
-        <hr style="border-color: #334155; margin-top: 20px;">
-        <small style="color: #94a3b8;">Si no solicitaste este cambio, ignora este correo.</small>
-      </div>
-    `;
-    sendSmtpEmail.sender = { "name": "Soporte Cpanel Admin", "email": "tanubistv@gmail.com" };
-    sendSmtpEmail.to = [{ "email": toEmail }];
+  const brevoApiKey = process.env.BREVO_API_KEY || 'xkeysib-917acae54fd28a2b2d2fbb0f3c2ef353c9d2f272880';
 
-    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log(`[CORREO ENVIADO VÍA BREVO A ${toEmail}]`, data);
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': brevoApiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { name: "Soporte Cpanel Admin", email: "tanubistv@gmail.com" },
+        to: [{ email: toEmail }],
+        subject: "🔑 Recuperación de Contraseña de Administrador",
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #f59e0b;">Recuperación de Administrador</h2>
+            <p>Has solicitado restablecer tu acceso como <strong>Administrador</strong> del panel.</p>
+            <p>Tu contraseña temporal de acceso es:</p>
+            <div style="background-color: #1e293b; padding: 15px; font-size: 22px; font-weight: bold; color: #10b981; letter-spacing: 2px; text-align: center; border-radius: 8px; margin: 15px 0;">
+              ${tempPassword}
+            </div>
+            <p>Ingresa al panel con esta clave temporal y el sistema te pedirá definir tu nueva contraseña.</p>
+            <hr style="border-color: #334155; margin-top: 20px;">
+            <small style="color: #94a3b8;">Si no solicitaste este cambio, ignora este correo.</small>
+          </div>
+        `
+      })
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      console.error(`[ERROR RESPUESTA BREVO]:`, result);
+    } else {
+      console.log(`[CORREO ENVIADO VÍA BREVO A ${toEmail}]`, result);
+    }
   } catch (err) {
     console.error(`[ERROR ENVIANDO CORREO BREVO] ${err.message}`);
   }
@@ -755,6 +765,39 @@ app.post('/api/admin/products', upload.single('productImageFile'), (req, res) =>
     res.json({ message: 'Producto creado exitosamente en el catálogo.' });
   } catch (err) {
     res.status(500).json({ error: 'Error al registrar producto: ' + err.message });
+  }
+});
+
+// EDITAR PRODUCTO (NUEVO ENDPOINT EXCLUSIVO ADMIN)
+app.put('/api/admin/products/:id', upload.single('productImageFile'), (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, type, price, imageUrl } = req.body;
+
+    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'Producto no encontrado.' });
+
+    let finalImageUrl = existing.image_url;
+
+    if (req.file) {
+      finalImageUrl = '/uploads/' + req.file.filename;
+    } else if (imageUrl !== undefined && imageUrl.trim() !== '') {
+      finalImageUrl = imageUrl.trim();
+    }
+
+    const newName = name ? name.trim() : existing.name;
+    const newType = type || existing.type;
+    const newPrice = price !== undefined ? parseFloat(price) : existing.price;
+
+    db.prepare(`
+      UPDATE products 
+      SET name = ?, type = ?, price = ?, image_url = ? 
+      WHERE id = ?
+    `).run(newName, newType, newPrice, finalImageUrl, id);
+
+    res.json({ message: 'Producto actualizado correctamente.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error actualizando producto: ' + err.message });
   }
 });
 
