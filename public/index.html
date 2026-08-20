@@ -16,7 +16,6 @@
     <div class="grid w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 md:grid-cols-2 shadow-2xl">
       <div class="flex flex-col justify-between bg-slate-950 p-8 border-r border-slate-800">
         <div>
-          <!-- BRANDING EN LA TARJETA DE LOGIN -->
           <div id="brand-login-logo-container" class="mb-4"></div>
           <h1 id="brand-login-title" class="text-3xl font-extrabold tracking-wider text-amber-500">CPANEL</h1>
           <p class="mt-6 text-xl font-medium text-slate-200">La energía del éxito digital</p>
@@ -81,7 +80,7 @@
     </div>
   </div>
 
-  <!-- VISTA PRINCIPAL CON BARRA SUPERIOR Y CABECERA DINÁMICA DE ALTURA -->
+  <!-- VISTA PRINCIPAL CON BARRA SUPERIOR -->
   <div id="view-app" class="hidden min-h-screen flex-col">
     <header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 backdrop-blur px-8 py-3 shadow-xl min-h-[70px]">
       <div class="flex items-center gap-8">
@@ -233,7 +232,7 @@
         </div>
       </div>
 
-      <!-- TÉRMINOS Y CONDICIONES (CON PANEL DE EDICIÓN EXCLUSIVO ADMIN) -->
+      <!-- TÉRMINOS Y CONDICIONES -->
       <div id="tab-terms" class="hidden space-y-8">
         <h2 class="text-2xl font-bold text-amber-500">Términos y Condiciones del Servicio de Streaming</h2>
         
@@ -268,7 +267,6 @@
           </div>
         </div>
 
-        <!-- FORMULARIO DE EDICIÓN SOLO VISIBLE PARA ADMIN -->
         <div id="admin-terms-editor" class="hidden bg-slate-900 border border-amber-500/40 p-6 rounded-2xl space-y-4">
           <h3 class="text-lg font-bold text-amber-400 border-b border-slate-800 pb-2">✏️ Editar Términos y Condiciones (Exclusivo Administrador)</h3>
           <form id="form-update-terms" class="space-y-3">
@@ -416,6 +414,71 @@
           <span class="text-xs text-slate-400 font-semibold">💡 Usa los botones ⬆️ / ⬇️ para ordenar los paneles</span>
         </div>
 
+        <!-- MÓDULO NUEVO: INVENTARIO MAESTRO Y PROVEEDORES -->
+        <div class="p-6 bg-slate-900 border border-amber-500/40 rounded-2xl space-y-4 shadow-xl">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h3 class="text-lg font-bold text-amber-400">📦 Inventario Maestro de Cuentas Madre y Proveedores</h3>
+            <span class="text-xs text-slate-400 font-semibold">Cuentas compradas a proveedores</span>
+          </div>
+
+          <form id="form-master-inventory" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Plataforma / Streaming</label>
+                <input type="text" id="master-platform" placeholder="Ej. VIX / Netflix / HBO" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Plan / Tipo</label>
+                <select id="master-plan" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+                  <option value="Mensual">Mensual</option>
+                  <option value="Anual">Anual</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Nombre del Proveedor</label>
+                <input type="text" id="master-supplier" placeholder="Ej. Proveedor Don Juan" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Correo de la Cuenta Madre</label>
+                <input type="email" id="master-email" placeholder="correo@madre.com" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Contraseña Cuenta Madre</label>
+                <input type="password" id="master-password" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Cantidad de Perfiles Totales</label>
+                <input type="number" min="1" max="10" id="master-profiles" placeholder="Ej: 5" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition uppercase">
+              ➕ Guardar Cuenta Madre en Inventario Maestro
+            </button>
+          </form>
+
+          <!-- TABLA DE INVENTARIO MAESTRO -->
+          <div class="mt-4 overflow-x-auto max-h-60 overflow-y-auto border border-slate-800 rounded-xl">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-800 uppercase text-slate-400 sticky top-0">
+                <tr>
+                  <th class="p-2.5">Plataforma</th>
+                  <th class="p-2.5">Plan</th>
+                  <th class="p-2.5">Correo Madre</th>
+                  <th class="p-2.5">Clave Madre (Ojo 👁️)</th>
+                  <th class="p-2.5">Proveedor</th>
+                  <th class="p-2.5">Perfiles Disponibles</th>
+                  <th class="p-2.5">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="master-inventory-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div id="admin-modules-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <div data-module-id="mod-1" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
@@ -434,7 +497,6 @@
             </form>
           </div>
 
-          <!-- PERSONALIZAR MARCA -->
           <div data-module-id="mod-2" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">🎨 Personalizar Marca (Nombre y Logo)</h3>
@@ -591,6 +653,7 @@
             </form>
           </div>
 
+          <!-- CARGA DE STOCK MEJORADA CON AUTO-LLENADO -->
           <div data-module-id="mod-8" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">4. Cargar Perfiles / Cuentas al Stock</h3>
@@ -599,12 +662,16 @@
                 <button onclick="moveModuleDown('mod-8')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded text-xs font-bold">⬇️</button>
               </div>
             </div>
-            <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO</p>
             
+            <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO</p>
+            <p id="master-found-badge" class="text-xs text-emerald-400 font-bold mb-2 hidden">✨ Datos auto-cargados desde Inventario Maestro</p>
+
             <form id="form-add-stock" class="space-y-3">
               <select id="stock-product-select" onchange="updatePlatformInputs()" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
                 <option value="">Selecciona Producto/Plataforma...</option>
               </select>
+
+              <input type="hidden" id="stock-master-account-id">
               
               <div id="stock-inputs-container" class="space-y-3 max-h-44 overflow-y-auto pr-1">
                 <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
@@ -626,7 +693,6 @@
 
         </div>
 
-        <!-- LISTA DE REVENDEDORES REGISTRADOS -->
         <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 class="text-lg font-bold text-white">Lista de Revendedores Registrados</h3>
@@ -656,7 +722,7 @@
     </main>
   </div>
 
-  <!-- MODAL EDITAR PRODUCTO (ADMIN) -->
+  <!-- MODAL EDITAR PRODUCTO -->
   <div id="modal-edit-product" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -700,6 +766,26 @@
       <div class="flex gap-2 pt-2">
         <button type="button" onclick="closeEditProductModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
         <button type="button" onclick="executeSaveProduct()" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-xs font-bold">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE SEGURIDAD ADMIN PARA OJO 👁️ -->
+  <div id="modal-verify-admin-pass" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-amber-500">🔒 Autenticación de Seguridad</h3>
+      <p class="text-xs text-slate-300">Ingresa tu contraseña de Administrador para revelar la contraseña de la cuenta madre:</p>
+
+      <input type="hidden" id="pass-reveal-target-id">
+
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-1">Contraseña de Administrador</label>
+        <input type="password" id="auth-admin-reveal-pass" placeholder="••••••••" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeVerifyPassModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg text-xs font-bold">Cancelar</button>
+        <button type="button" onclick="executeRevealPassword()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-xs font-bold">Ver Contraseña</button>
       </div>
     </div>
   </div>
@@ -762,7 +848,7 @@
     </div>
   </div>
 
-  <!-- MODAL RESPONDER Y CAMBIAR ESTADO DE TICKET -->
+  <!-- MODAL RESPONDER TICKET -->
   <div id="modal-resolve-ticket" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -849,6 +935,7 @@
     let allUsersCache = [];
     let globalConfigCache = {};
     let lastUserBalance = null;
+    let masterInventoryCache = [];
 
     async function loadGlobalBranding() {
       try {
@@ -861,7 +948,6 @@
         document.getElementById('brand-login-title').innerText = brandTitle;
         document.getElementById('brand-header-title').innerText = brandTitle;
 
-        // TÉRMINOS Y CONDICIONES PERSISTENTES
         if (data.terms_text) {
           document.getElementById('terms-content-display').innerHTML = data.terms_text;
         }
@@ -925,6 +1011,134 @@
     }
 
     loadGlobalBranding();
+
+    // INVENTARIO MAESTRO Y SEGURIDAD OJO
+    async function loadMasterInventory() {
+      try {
+        const res = await fetch('/api/admin/master-inventory');
+        masterInventoryCache = await res.json();
+        const tbody = document.getElementById('master-inventory-table-body');
+
+        if (!tbody) return;
+
+        if (!Array.isArray(masterInventoryCache) || masterInventoryCache.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 text-center">No hay cuentas madre registradas en el Inventario Maestro.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = masterInventoryCache.map(item => {
+          const avail = item.total_profiles - item.used_profiles;
+          const statusBadge = avail > 0 
+            ? `<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-bold">${avail} / ${item.total_profiles} perfiles libres</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] bg-red-600/30 text-red-400 font-bold">Agotada (${item.total_profiles}/${item.total_profiles})</span>`;
+
+          return `
+            <tr class="border-b border-slate-800 hover:bg-slate-800/40">
+              <td class="p-2.5 font-bold text-amber-400">${item.platform_name}</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-semibold">${item.plan_type}</span></td>
+              <td class="p-2.5 font-mono text-xs text-white">${item.email_account}</td>
+              <td class="p-2.5 font-mono text-xs">
+                <span id="pass-mask-${item.id}" class="text-slate-400">••••••••</span>
+                <span id="pass-text-${item.id}" class="hidden text-amber-300 font-bold">${item.password_account}</span>
+                <button onclick="requestRevealPass(${item.id})" class="ml-2 text-slate-400 hover:text-white" title="Ver Clave">👁️</button>
+              </td>
+              <td class="p-2.5 font-semibold text-slate-300">${item.supplier_name}</td>
+              <td class="p-2.5">${statusBadge}</td>
+              <td class="p-2.5">
+                <button onclick="deleteMasterInventory(${item.id})" class="text-red-400 hover:text-red-300 font-bold text-xs">🗑️ Borrar</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Error cargando inventario maestro:", err);
+      }
+    }
+
+    document.getElementById('form-master-inventory').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const platformName = document.getElementById('master-platform').value;
+      const planType = document.getElementById('master-plan').value;
+      const emailAccount = document.getElementById('master-email').value;
+      const passwordAccount = document.getElementById('master-password').value;
+      const supplierName = document.getElementById('master-supplier').value;
+      const totalProfiles = document.getElementById('master-profiles').value;
+
+      try {
+        const res = await fetch('/api/admin/master-inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platformName, planType, emailAccount, passwordAccount, supplierName, totalProfiles })
+        });
+
+        const data = await res.json();
+        alert(data.message || data.error);
+
+        if (res.ok) {
+          e.target.reset();
+          loadMasterInventory();
+        }
+      } catch (err) {
+        alert("Error al guardar cuenta madre.");
+      }
+    });
+
+    function requestRevealPass(id) {
+      const passText = document.getElementById(`pass-text-${id}`);
+      if (!passText.classList.contains('hidden')) {
+        document.getElementById(`pass-mask-${id}`).classList.remove('hidden');
+        passText.classList.add('hidden');
+        return;
+      }
+      document.getElementById('pass-reveal-target-id').value = id;
+      document.getElementById('auth-admin-reveal-pass').value = '';
+      document.getElementById('modal-verify-admin-pass').classList.remove('hidden');
+    }
+
+    function closeVerifyPassModal() {
+      document.getElementById('modal-verify-admin-pass').classList.add('hidden');
+    }
+
+    async function executeRevealPassword() {
+      const adminPassword = document.getElementById('auth-admin-reveal-pass').value;
+      const id = document.getElementById('pass-reveal-target-id').value;
+
+      if (!adminPassword) {
+        alert("Ingresa tu contraseña de Administrador.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/verify-pass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminPassword })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeVerifyPassModal();
+          document.getElementById(`pass-mask-${id}`).classList.add('hidden');
+          document.getElementById(`pass-text-${id}`).classList.remove('hidden');
+        } else {
+          alert(data.error || 'Contraseña incorrecta.');
+        }
+      } catch (err) {
+        alert("Error al verificar contraseña.");
+      }
+    }
+
+    async function deleteMasterInventory(id) {
+      if (!confirm("¿Estás seguro de eliminar esta cuenta madre del Inventario Maestro?")) return;
+      try {
+        const res = await fetch(`/api/admin/master-inventory/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.message || data.error);
+        if (res.ok) loadMasterInventory();
+      } catch (err) {
+        alert("Error al eliminar cuenta del inventario maestro.");
+      }
+    }
 
     function moveModuleUp(id) {
       const el = document.querySelector(`[data-module-id="${id}"]`);
@@ -1265,7 +1479,6 @@
       }
     });
 
-    // EDITAR TÉRMINOS Y CONDICIONES (ADMIN)
     document.getElementById('form-update-terms').addEventListener('submit', async (e) => {
       e.preventDefault();
       const termsText = document.getElementById('terms-text-input').value;
@@ -1346,6 +1559,12 @@
 
     document.getElementById('form-report-recharge').addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (!currentUser || !currentUser.id) {
+        alert("Sesión no válida. Vuelve a iniciar sesión.");
+        return;
+      }
+
       const amount = document.getElementById('recharge-report-amount').value;
       const fileInput = document.getElementById('recharge-report-file');
 
@@ -1382,28 +1601,30 @@
         const requests = await res.json();
         const tbody = document.getElementById('recharge-requests-table-body');
 
-        if (requests.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500">No hay solicitudes de recarga.</td></tr>`;
+        if (!tbody) return;
+
+        if (!Array.isArray(requests) || requests.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500 text-center">No hay solicitudes de recarga pendientes.</td></tr>`;
           return;
         }
 
         tbody.innerHTML = requests.map(r => `
           <tr class="border-b border-slate-800 hover:bg-slate-800/40">
-            <td class="p-2 font-bold text-white">${r.user_name}</td>
-            <td class="p-2 font-black text-emerald-400">$${r.amount.toFixed(2)}</td>
+            <td class="p-2 font-bold text-white">${r.user_name || r.user_email}</td>
+            <td class="p-2 font-black text-emerald-400">$${parseFloat(r.amount).toFixed(2)} MXN</td>
             <td class="p-2">
-              ${r.receipt_url ? `<a href="${r.receipt_url}" target="_blank" class="text-xs text-amber-400 hover:underline font-bold">🖼️ Ver</a>` : 'Sin foto'}
+              ${r.receipt_url ? `<a href="${r.receipt_url}" target="_blank" class="text-xs text-amber-400 hover:underline font-bold">🖼️ Ver Comprobante</a>` : '<span class="text-slate-500">Sin foto</span>'}
             </td>
             <td class="p-2 flex gap-1">
               ${r.status === 'pending' ? `
-                <button onclick="openProcessRechargeModal(${r.id}, 'approve', ${r.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">Aprobar</button>
-                <button onclick="openProcessRechargeModal(${r.id}, 'reject', ${r.amount})" class="bg-red-600 hover:bg-red-500 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">Rechazar</button>
+                <button onclick="openProcessRechargeModal(${r.id}, 'approve', ${r.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2 py-1 rounded text-[10px]">Aprobar</button>
+                <button onclick="openProcessRechargeModal(${r.id}, 'reject', ${r.amount})" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-[10px]">Rechazar</button>
               ` : `<span class="text-[10px] text-slate-500 uppercase font-bold">${r.status}</span>`}
             </td>
           </tr>
         `).join('');
       } catch (err) {
-        console.error("Error cargando solicitudes");
+        console.error("Error cargando solicitudes de recarga:", err);
       }
     }
 
@@ -1649,6 +1870,7 @@
       } else if (tab === 'admin') {
         document.getElementById('tab-admin').classList.remove('hidden');
         document.getElementById('tab-btn-admin').className = "text-white border-b-2 border-amber-500 pb-1";
+        loadMasterInventory();
         loadAdminProductOptions();
         loadUsersTable();
         loadRechargeRequestsTable();
@@ -1941,7 +2163,6 @@
                 </span>
               </div>
 
-              <!-- FECHA DE COMPRA Y VENCIMIENTO DE LA MUESTRA -->
               <div class="p-2 bg-slate-950 rounded border border-slate-800/80 text-[11px] text-amber-400 font-bold mb-3 flex justify-between">
                 <span>📅 Compra: ${purchaseFormatted}</span>
                 <span>⏳ Vence: ${expirationFormatted}</span>
@@ -1989,7 +2210,7 @@
     function copyDeliveryData(text) {
       const cleanText = text.replace(/\\n/g, '\n');
       navigator.clipboard.writeText(cleanText).then(() => {
-        alert("¡Datos copados al portapapeles con éxito!");
+        alert("¡Datos copiados al portapapeles con éxito!");
       }).catch(err => {
         alert("Error al copiar datos.");
       });
@@ -2225,23 +2446,71 @@
         products.map(p => `<option value="${p.id}" data-type="${p.type}" data-name="${p.name}">${p.name} (${p.type})</option>`).join('');
     }
 
-    function updatePlatformInputs() {
+    // LÓGICA DE AUTO-LLENADO Y DESCUENTO DE PERFILES DESDE INVENTARIO MAESTRO
+    async function updatePlatformInputs() {
       const select = document.getElementById('stock-product-select');
       const selectedOption = select.options[select.selectedIndex];
-      const platformName = selectedOption.getAttribute('data-name') || '';
-      const productType = selectedOption.getAttribute('data-type') || '';
+      const platformName = selectedOption ? selectedOption.getAttribute('data-name') || '' : '';
+      const productType = selectedOption ? selectedOption.getAttribute('data-type') || '' : '';
       
       const comboBadge = document.getElementById('combo-badge');
+      const masterBadge = document.getElementById('master-found-badge');
+      document.getElementById('stock-master-account-id').value = '';
+
       if (productType === 'Combo') {
         comboBadge.classList.remove('hidden');
       } else {
         comboBadge.classList.add('hidden');
       }
 
-      const platformInputs = document.querySelectorAll('.stock-platform');
-      platformInputs.forEach(input => {
-        if (platformName) input.value = platformName;
-      });
+      if (!platformName) return;
+
+      try {
+        const res = await fetch(`/api/admin/master-inventory/available/${encodeURIComponent(platformName)}`);
+        if (res.ok) {
+          const masterAcc = await res.json();
+          masterBadge.classList.remove('hidden');
+          document.getElementById('stock-master-account-id').value = masterAcc.id;
+
+          const container = document.getElementById('stock-inputs-container');
+          const availProfiles = masterAcc.total_profiles - masterAcc.used_profiles;
+
+          if (productType === 'Cuenta') {
+            container.innerHTML = `
+              <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+                <input type="text" value="${platformName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                <input type="email" value="${masterAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="text" value="${masterAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  <input type="text" value="Cuenta Completa con ${masterAcc.total_profiles} perfiles" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                </div>
+              </div>
+            `;
+          } else {
+            let rowsHtml = '';
+            for (let i = 1; i <= availProfiles; i++) {
+              const currentNum = masterAcc.used_profiles + i;
+              rowsHtml += `
+                <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+                  <input type="text" value="${platformName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                  <input type="email" value="${masterAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  <div class="grid grid-cols-2 gap-2">
+                    <input type="text" value="${masterAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <input type="text" value="Perfil ${currentNum}" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  </div>
+                </div>
+              `;
+            }
+            container.innerHTML = rowsHtml;
+          }
+        } else {
+          masterBadge.classList.add('hidden');
+          const platformInputs = document.querySelectorAll('.stock-platform');
+          platformInputs.forEach(input => input.value = platformName);
+        }
+      } catch (e) {
+        masterBadge.classList.add('hidden');
+      }
     }
 
     function addStockRow() {
@@ -2445,6 +2714,7 @@
         if (res.ok) {
           e.target.reset();
           loadProducts();
+          loadAdminProductOptions();
         }
       } catch (err) {
         alert("Error de conexión al crear el producto.");
@@ -2457,6 +2727,7 @@
       const productId = select.value;
       const selectedOption = select.options[select.selectedIndex];
       const productType = selectedOption ? selectedOption.getAttribute('data-type') : '';
+      const masterAccountId = document.getElementById('stock-master-account-id').value;
       
       if (!productId) {
         alert("Por favor selecciona un producto o plataforma.");
@@ -2481,6 +2752,7 @@
         body: JSON.stringify({ 
           productId, 
           isCombo: productType === 'Combo', 
+          masterAccountId,
           items 
         })
       });
@@ -2501,8 +2773,10 @@
         `;
         e.target.reset();
         document.getElementById('combo-badge').classList.add('hidden');
+        document.getElementById('master-found-badge').classList.add('hidden');
         loadProducts();
         loadAdminMetrics();
+        loadMasterInventory();
       }
     });
   </script>
