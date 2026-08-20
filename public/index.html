@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <!-- VISTA PRINCIPAL CON PESTAÑA DEDICADA DE INVENTARIO PARA EL ADMIN -->
+  <!-- VISTA PRINCIPAL CON NAVEGACIÓN -->
   <div id="view-app" class="hidden min-h-screen flex-col">
     <header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 backdrop-blur px-8 py-3 shadow-xl min-h-[70px]">
       <div class="flex items-center gap-8">
@@ -101,11 +101,12 @@
             <span id="badge-support-review" class="hidden bg-amber-500 text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
           </button>
 
-          <!-- NUEVA PESTAÑA INDEPENDIENTE DE INVENTARIO ADMIN -->
-          <button onclick="switchTab('admin-master')" id="tab-btn-admin-master" class="hidden text-amber-400 hover:text-amber-300 font-bold pb-1">Inventario Admin</button>
+          <!-- INVENTARIO MASTER Y PANEL ADMIN JUNTOS -->
+          <button onclick="switchTab('admin-master')" id="tab-btn-admin-master" class="hidden text-amber-400 hover:text-amber-300 font-bold pb-1">Inventario Master</button>
+          <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
+
           <button onclick="switchTab('admin-metrics')" id="tab-btn-admin-metrics" class="hidden hover:text-white pb-1">Reporte de Ventas</button>
           <button onclick="switchTab('admin-inventory')" id="tab-btn-admin-inventory" class="hidden hover:text-white pb-1">Inventario por Cuentas</button>
-          <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
         </nav>
       </div>
 
@@ -409,11 +410,11 @@
         </div>
       </div>
 
-      <!-- VISTA PESTAÑA DEDICADA: INVENTARIO [NOMBRE ADMIN] -->
+      <!-- VISTA PESTAÑA DEDICADA: INVENTARIO MASTER -->
       <div id="tab-admin-master" class="hidden space-y-8">
         <div class="p-6 bg-slate-900 border border-amber-500/40 rounded-2xl space-y-4 shadow-xl">
           <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <h3 class="text-xl font-extrabold text-amber-400">📦 Inventario <span id="admin-inventory-title-name">Admin</span></h3>
+            <h3 class="text-xl font-extrabold text-amber-400">📦 Inventario Master</h3>
             <span class="text-xs text-slate-400 font-semibold">Cuentas madre y proveedores registrados</span>
           </div>
 
@@ -452,7 +453,7 @@
             </div>
 
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition uppercase">
-              ➕ Guardar Cuenta Madre en Inventario
+              ➕ Guardar Cuenta Madre en Inventario Master
             </button>
           </form>
 
@@ -634,6 +635,7 @@
             </div>
           </div>
 
+          <!-- REGISTRAR PRODUCTO EN CATÁLOGO CON OPCIÓN DÚO -->
           <div data-module-id="mod-7" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">3. Registrar Producto en Catálogo</h3>
@@ -643,10 +645,11 @@
               </div>
             </div>
             <form id="form-create-product" class="space-y-3">
-              <input type="text" id="prod-name" placeholder="Ej. HBO MAX PANTALLA" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
+              <input type="text" id="prod-name" placeholder="Ej. VIX + NETFLIX + HBO (1 PERFIL X 1 MES)" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
               <select id="prod-type" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
                 <option value="Perfil">Perfil</option>
                 <option value="Cuenta">Cuenta Completa</option>
+                <option value="Dúo">Dúo</option>
                 <option value="Combo">Combo</option>
               </select>
               <input type="number" step="0.01" id="prod-price" placeholder="Precio (MXN)" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
@@ -666,17 +669,17 @@
               </div>
             </div>
             
-            <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO</p>
-            <p id="master-found-badge" class="text-xs text-emerald-400 font-bold mb-2 hidden">✨ Datos auto-cargados desde Inventario</p>
+            <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO / DÚO</p>
+            <p id="master-found-badge" class="text-xs text-emerald-400 font-bold mb-2 hidden">✨ Datos auto-cargados desde Inventario Master</p>
 
             <form id="form-add-stock" class="space-y-3">
               <select id="stock-product-select" onchange="updatePlatformInputs()" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
                 <option value="">Selecciona Producto/Plataforma...</option>
               </select>
 
-              <input type="hidden" id="stock-master-account-id">
+              <input type="hidden" id="stock-master-account-ids">
               
-              <div id="stock-inputs-container" class="space-y-3 max-h-44 overflow-y-auto pr-1">
+              <div id="stock-inputs-container" class="space-y-3 max-h-56 overflow-y-auto pr-1">
                 <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
                   <input type="text" placeholder="Plataforma (ej: Disney / HBO)" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
                   <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
@@ -745,6 +748,7 @@
         <select id="edit-prod-type" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
           <option value="Perfil">Perfil</option>
           <option value="Cuenta">Cuenta Completa</option>
+          <option value="Dúo">Dúo</option>
           <option value="Combo">Combo</option>
         </select>
       </div>
@@ -1015,7 +1019,7 @@
 
     loadGlobalBranding();
 
-    // INVENTARIO ADMIN
+    // INVENTARIO MASTER
     async function loadMasterInventory() {
       try {
         const res = await fetch('/api/admin/master-inventory');
@@ -1025,7 +1029,7 @@
         if (!tbody) return;
 
         if (!Array.isArray(masterInventoryCache) || masterInventoryCache.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 text-center">No hay cuentas madre registradas en el Inventario.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 text-center">No hay cuentas madre registradas en el Inventario Master.</td></tr>`;
           return;
         }
 
@@ -1054,7 +1058,7 @@
           `;
         }).join('');
       } catch (err) {
-        console.error("Error cargando inventario:", err);
+        console.error("Error cargando inventario master:", err);
       }
     }
 
@@ -1132,14 +1136,14 @@
     }
 
     async function deleteMasterInventory(id) {
-      if (!confirm("¿Estás seguro de eliminar esta cuenta madre del Inventario?")) return;
+      if (!confirm("¿Estás seguro de eliminar esta cuenta madre del Inventario Master?")) return;
       try {
         const res = await fetch(`/api/admin/master-inventory/${id}`, { method: 'DELETE' });
         const data = await res.json();
         alert(data.message || data.error);
         if (res.ok) loadMasterInventory();
       } catch (err) {
-        alert("Error al eliminar cuenta del inventario.");
+        alert("Error al eliminar cuenta del inventario master.");
       }
     }
 
@@ -1314,10 +1318,6 @@
 
       document.getElementById('user-email-display').innerText = `${currentUser.email} (${currentUser.role})`;
 
-      const adminName = currentUser.name || "Admin";
-      document.getElementById('admin-inventory-title-name').innerText = adminName;
-      document.getElementById('tab-btn-admin-master').innerText = `Inventario ${adminName}`;
-
       if (currentUser.role === 'admin') {
         document.getElementById('tab-btn-admin-master').classList.remove('hidden');
         document.getElementById('tab-btn-admin').classList.remove('hidden');
@@ -1416,8 +1416,6 @@
         if (res.ok) {
           currentUser.name = data.newName;
           updateGreeting();
-          document.getElementById('admin-inventory-title-name').innerText = data.newName;
-          document.getElementById('tab-btn-admin-master').innerText = `Inventario ${data.newName}`;
         }
       } catch (err) {
         alert("Error de conexión al guardar el nombre.");
@@ -1924,7 +1922,6 @@
       }).join('');
     }
 
-    // CARGA DE CATÁLOGO MOSTRANDO "CUENTA COMPLETA" EXACTAMENTE
     async function loadProducts() {
       const res = await fetch('/api/products');
       const products = await res.json();
@@ -1939,7 +1936,6 @@
         const pNameEsc = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const pImgEsc = (p.image_url || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-        // CORRECCIÓN PUNTO 5: MOSTRAR "CUENTA COMPLETA"
         let displayType = p.type;
         if (p.type === 'Cuenta' || p.type === 'CUENTA') {
           displayType = 'CUENTA COMPLETA';
@@ -2469,7 +2465,21 @@
         products.map(p => `<option value="${p.id}" data-type="${p.type}" data-name="${p.name}">${p.name} (${p.type})</option>`).join('');
     }
 
-    // CARGA Y PREGUNTA INTELIGENTE PARA COMBOS Y PERFILES
+    // LIMPIEZA DE FORMULARIO Y AUTO-LLENADO MULTI-CUENTA
+    function resetStockFormInputs(platformName) {
+      const container = document.getElementById('stock-inputs-container');
+      container.innerHTML = `
+        <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+          <input type="text" value="${platformName}" placeholder="Plataforma" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+          <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="Contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+            <input type="text" placeholder="Perfil (ej. Perfil 1)" value="Perfil 1" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+          </div>
+        </div>
+      `;
+    }
+
     async function updatePlatformInputs() {
       const select = document.getElementById('stock-product-select');
       const selectedOption = select.options[select.selectedIndex];
@@ -2478,73 +2488,136 @@
       
       const comboBadge = document.getElementById('combo-badge');
       const masterBadge = document.getElementById('master-found-badge');
-      document.getElementById('stock-master-account-id').value = '';
+      document.getElementById('stock-master-account-ids').value = '';
 
-      if (productType === 'Combo') {
+      if (!platformName) {
+        resetStockFormInputs('');
+        comboBadge.classList.add('hidden');
+        masterBadge.classList.add('hidden');
+        return;
+      }
+
+      const isComboOrDuo = productType === 'Combo' || productType === 'Dúo' || productType === 'DUO' || productType === 'COMBO';
+      if (isComboOrDuo) {
         comboBadge.classList.remove('hidden');
       } else {
         comboBadge.classList.add('hidden');
       }
 
-      if (!platformName) return;
+      // LIMPIEZA INICIAL ANTES DE BUSCAR
+      resetStockFormInputs(platformName);
 
       try {
-        const res = await fetch(`/api/admin/master-inventory/available/${encodeURIComponent(platformName)}`);
-        if (res.ok) {
-          const masterAccounts = await res.json();
-          if (!Array.isArray(masterAccounts) || masterAccounts.length === 0) return;
+        const resMaster = await fetch('/api/admin/master-inventory');
+        if (!resMaster.ok) return;
+        const allMaster = await resMaster.json();
 
-          const masterAcc = masterAccounts[0];
+        // Extrae nombres de plataformas dentro del título (ej. "VIX + NETFLIX + HBO")
+        const services = platformName.split('+').map(s => s.replace(/\(.*?\)/g, '').trim()).filter(s => s.length > 0);
+        let usedMasterIds = [];
+        let comboItemsHtml = '';
+
+        if (isComboOrDuo) {
+          const promptAns = prompt(`¿Cuántos paquetes de "${platformName}" deseas armar y cargar al stock?`, "1");
+          let packsToLoad = parseInt(promptAns);
+          if (isNaN(packsToLoad) || packsToLoad <= 0) packsToLoad = 1;
+
+          for (let pIdx = 1; pIdx <= packsToLoad; pIdx++) {
+            services.forEach(srvName => {
+              const matchedAcc = allMaster.find(acc => {
+                const accName = (acc.platform_name || '').toLowerCase();
+                const cleanSrv = srvName.toLowerCase();
+                const freeCount = acc.total_profiles - acc.used_profiles;
+                return (accName.includes(cleanSrv) || cleanSrv.includes(accName)) && freeCount > 0;
+              });
+
+              if (matchedAcc) {
+                usedMasterIds.push(matchedAcc.id);
+                matchedAcc.used_profiles += 1; // Reserva temporal
+                comboItemsHtml += `
+                  <div class="stock-item-row p-3 bg-slate-800/50 border border-amber-500/30 rounded-lg space-y-2 mb-2">
+                    <span class="text-[10px] text-amber-400 font-bold block">📦 Paquete #${pIdx} - ${srvName.toUpperCase()}</span>
+                    <input type="text" value="${srvName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                    <input type="email" value="${matchedAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                      <input type="text" value="${matchedAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                      <input type="text" value="Perfil ${matchedAcc.used_profiles}" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    </div>
+                  </div>
+                `;
+              } else {
+                comboItemsHtml += `
+                  <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2 mb-2">
+                    <span class="text-[10px] text-slate-400 font-bold block">⚠️ Paquete #${pIdx} - ${srvName.toUpperCase()} (Sin cuenta en Inventario)</span>
+                    <input type="text" value="${srvName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                    <input type="email" placeholder="Ingresa correo para ${srvName}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                      <input type="text" placeholder="Ingresa contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                      <input type="text" value="Perfil 1" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    </div>
+                  </div>
+                `;
+              }
+            });
+          }
+
+          document.getElementById('stock-inputs-container').innerHTML = comboItemsHtml;
+          document.getElementById('stock-master-account-ids').value = JSON.stringify(usedMasterIds);
           masterBadge.classList.remove('hidden');
-          document.getElementById('stock-master-account-id').value = masterAcc.id;
 
-          const container = document.getElementById('stock-inputs-container');
-          const availProfiles = masterAcc.total_profiles - masterAcc.used_profiles;
+        } else {
+          // BÚSQUEDA PARA INDIVIDUALES
+          const srvName = services[0] || platformName;
+          const matchedAcc = allMaster.find(acc => {
+            const accName = (acc.platform_name || '').toLowerCase();
+            const cleanSrv = srvName.toLowerCase();
+            const freeCount = acc.total_profiles - acc.used_profiles;
+            return (accName.includes(cleanSrv) || cleanSrv.includes(accName)) && freeCount > 0;
+          });
 
-          // SI ES CUENTA COMPLETA: NO PREGUNTA Y TOMA LA CUENTA
-          if (productType === 'Cuenta') {
-            container.innerHTML = `
-              <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
-                <input type="text" value="${platformName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
-                <input type="email" value="${masterAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-                <div class="grid grid-cols-2 gap-2">
-                  <input type="text" value="${masterAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-                  <input type="text" value="Cuenta Completa con ${masterAcc.total_profiles} perfiles" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-                </div>
-              </div>
-            `;
-          } else {
-            // APLICA PARA PERFILES, COMBOS Y DÚOS: PREGUNTA CUÁNTOS PERFILES DESEA CARGAR
-            const promptAns = prompt(`Se encontró la cuenta madre "${masterAcc.email_account}" con ${availProfiles} perfil(es) disponible(s).\n¿Cuántos perfiles deseas cargar al stock?`, availProfiles);
-            let countToLoad = parseInt(promptAns);
+          if (matchedAcc) {
+            masterBadge.classList.remove('hidden');
+            document.getElementById('stock-master-account-ids').value = JSON.stringify([matchedAcc.id]);
+            const availProfiles = matchedAcc.total_profiles - matchedAcc.used_profiles;
 
-            if (isNaN(countToLoad) || countToLoad <= 0) {
-              countToLoad = availProfiles;
-            } else if (countToLoad > availProfiles) {
-              alert(`Solo hay ${availProfiles} perfil(es) disponible(s) en la cuenta madre. Se cargarán ${availProfiles}.`);
-              countToLoad = availProfiles;
-            }
-
-            let rowsHtml = '';
-            for (let i = 1; i <= countToLoad; i++) {
-              const currentNum = masterAcc.used_profiles + i;
-              rowsHtml += `
+            if (productType === 'Cuenta') {
+              document.getElementById('stock-inputs-container').innerHTML = `
                 <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
                   <input type="text" value="${platformName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
-                  <input type="email" value="${masterAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                  <input type="email" value="${matchedAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
                   <div class="grid grid-cols-2 gap-2">
-                    <input type="text" value="${masterAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-                    <input type="text" value="Perfil ${currentNum}" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <input type="text" value="${matchedAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <input type="text" value="Cuenta Completa con ${matchedAcc.total_profiles} perfiles" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
                   </div>
                 </div>
               `;
+            } else {
+              const promptAns = prompt(`Se encontró la cuenta madre "${matchedAcc.email_account}" con ${availProfiles} perfil(es) libre(s).\n¿Cuántos perfiles deseas cargar al stock?`, availProfiles);
+              let countToLoad = parseInt(promptAns);
+
+              if (isNaN(countToLoad) || countToLoad <= 0) countToLoad = availProfiles;
+              if (countToLoad > availProfiles) countToLoad = availProfiles;
+
+              let rowsHtml = '';
+              for (let i = 1; i <= countToLoad; i++) {
+                const currentNum = matchedAcc.used_profiles + i;
+                rowsHtml += `
+                  <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
+                    <input type="text" value="${platformName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
+                    <input type="email" value="${matchedAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                      <input type="text" value="${matchedAcc.password_account}" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                      <input type="text" value="Perfil ${currentNum}" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                    </div>
+                  </div>
+                `;
+              }
+              document.getElementById('stock-inputs-container').innerHTML = rowsHtml;
             }
-            container.innerHTML = rowsHtml;
+          } else {
+            masterBadge.classList.add('hidden');
+            alert(`No hay cuentas madre disponibles en el Inventario Master para "${platformName}". Ingresa los datos manualmente.`);
           }
-        } else {
-          masterBadge.classList.add('hidden');
-          const platformInputs = document.querySelectorAll('.stock-platform');
-          platformInputs.forEach(input => input.value = platformName);
         }
       } catch (e) {
         masterBadge.classList.add('hidden');
@@ -2765,7 +2838,12 @@
       const productId = select.value;
       const selectedOption = select.options[select.selectedIndex];
       const productType = selectedOption ? selectedOption.getAttribute('data-type') : '';
-      const masterAccountId = document.getElementById('stock-master-account-id').value;
+      const masterIdsRaw = document.getElementById('stock-master-account-ids').value;
+      let masterAccountIds = [];
+
+      if (masterIdsRaw) {
+        try { masterAccountIds = JSON.parse(masterIdsRaw); } catch(e){}
+      }
       
       if (!productId) {
         alert("Por favor selecciona un producto o plataforma.");
@@ -2784,13 +2862,15 @@
         });
       });
 
+      const isComboOrDuo = productType === 'Combo' || productType === 'Dúo' || productType === 'DUO' || productType === 'COMBO';
+
       const res = await fetch('/api/admin/stock/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           productId, 
-          isCombo: productType === 'Combo', 
-          masterAccountId,
+          isCombo: isComboOrDuo, 
+          masterAccountIds,
           items 
         })
       });
@@ -2799,16 +2879,7 @@
       alert(data.message || data.error);
       
       if(res.ok) {
-        document.getElementById('stock-inputs-container').innerHTML = `
-          <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
-            <input type="text" placeholder="Plataforma (ej: Disney / HBO)" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
-            <input type="email" placeholder="Correo de la cuenta" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" placeholder="Contraseña" required class="stock-pass w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-              <input type="text" placeholder="Perfil (ej. Perfil 1)" value="Perfil 1" required class="stock-profile w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
-            </div>
-          </div>
-        `;
+        resetStockFormInputs('');
         e.target.reset();
         document.getElementById('combo-badge').classList.add('hidden');
         document.getElementById('master-found-badge').classList.add('hidden');
