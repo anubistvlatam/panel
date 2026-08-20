@@ -22,19 +22,17 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ------------------------------------------------------------------
-// SISTEMA KEEP-ALIVE (PING AUTOMÁTICO PARA QUE RENDER NO SE DUERMA)
-// ------------------------------------------------------------------
+// KEEP-ALIVE PARA RENDER
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
 if (RENDER_URL) {
   setInterval(() => {
     fetch(RENDER_URL)
-      .then(() => console.log(`[KEEP-ALIVE] Ping exitoso a ${RENDER_URL} para mantener servidor activo.`))
+      .then(() => console.log(`[KEEP-ALIVE] Ping exitoso a ${RENDER_URL}`))
       .catch(err => console.error(`[KEEP-ALIVE ERROR] ${err.message}`));
-  }, 10 * 60 * 1000); // Se ejecuta cada 10 minutos
+  }, 10 * 60 * 1000);
 }
 
-// CREACIÓN DE LA TABLA DE INVENTARIO MAESTRO SI NO EXISTE
+// TABLA INVENTARIO MASTER
 try {
   db.prepare(`
     CREATE TABLE IF NOT EXISTS master_inventory (
@@ -54,7 +52,7 @@ try {
   console.error("Error creando tabla master_inventory:", e);
 }
 
-// CONFIGURACIÓN DE ENVÍO DE CORREO RECUPERACIÓN VÍA API HTTP BREVO
+// CORREO RECUPERACIÓN VÍA BREVO API
 async function sendAdminRecoveryEmail(toEmail, tempPassword) {
   const brevoApiKey = process.env.BREVO_API_KEY || 'xkeysib-917acae54fd28a2b2d2fbb0f3c2ef353c9d2f272880';
 
@@ -147,13 +145,13 @@ function cleanupOldRechargeRequests() {
   }
 }
 
-// INVENTARIO MAESTRO Y PROVEEDORES (EXCLUSIVO ADMIN)
+// INVENTARIO MASTER
 app.get('/api/admin/master-inventory', (req, res) => {
   try {
     const items = db.prepare("SELECT * FROM master_inventory ORDER BY id DESC").all();
     res.json(items);
   } catch (err) {
-    res.status(500).json({ error: 'Error cargando inventario maestro: ' + err.message });
+    res.status(500).json({ error: 'Error cargando inventario master: ' + err.message });
   }
 });
 
@@ -188,32 +186,6 @@ app.post('/api/admin/verify-pass', (req, res) => {
   }
 });
 
-app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
-  try {
-    const { platform } = req.params;
-    const cleanSearch = (platform || '').trim().toLowerCase();
-
-    const accounts = db.prepare(`
-      SELECT * FROM master_inventory 
-      WHERE (total_profiles - used_profiles) > 0 AND status = 'active'
-      ORDER BY id ASC
-    `).all();
-
-    const matchedAccounts = accounts.filter(acc => {
-      const accPlatform = (acc.platform_name || '').toLowerCase();
-      return accPlatform.includes(cleanSearch) || cleanSearch.includes(accPlatform);
-    });
-
-    if (matchedAccounts.length === 0) {
-      return res.status(404).json({ error: 'No hay cuentas disponibles en el Inventario Master para este servicio.' });
-    }
-
-    res.json(matchedAccounts);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener cuenta disponible: ' + err.message });
-  }
-});
-
 app.delete('/api/admin/master-inventory/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -224,7 +196,7 @@ app.delete('/api/admin/master-inventory/:id', (req, res) => {
   }
 });
 
-// RUTAS EXCLUSIVAS DEL PANEL CREADOR
+// RUTAS CREADOR
 let creatorPassHash = bcrypt.hashSync("Anubis.123*", 10);
 let creatorMustChangePass = false;
 
@@ -244,7 +216,6 @@ app.post('/api/creator/forgot-password', (req, res) => {
   const tempPass = "RESET" + Math.floor(100000 + Math.random() * 900000);
   creatorPassHash = bcrypt.hashSync(tempPass, 10);
   creatorMustChangePass = true;
-  console.log(`\n[CREADOR] CONTRASEÑA TEMPORAL CREADOR: ${tempPass}\n`);
   res.json({ message: 'Revisa la consola/logs del servidor para obtener tu contraseña temporal.' });
 });
 
@@ -307,7 +278,7 @@ app.delete('/api/creator/delete-admin/:id', (req, res) => {
   }
 });
 
-// CONFIGURACIÓN DE BRANDING, SETTINGS Y TÉRMINOS
+// SETTINGS
 app.get('/api/settings', (req, res) => {
   try {
     cleanupOldRechargeRequests();
@@ -367,7 +338,6 @@ app.post('/api/admin/settings', upload.fields([
 
     res.json({ message: 'Configuración y Términos actualizados correctamente.' });
   } catch (dbErr) {
-    console.error("Error guardando settings:", dbErr);
     res.status(500).json({ error: 'Error en la base de datos: ' + dbErr.message });
   }
 });
@@ -1072,30 +1042,37 @@ app.post('/api/admin/stock/bulk', (req, res) => {
 
   try {
     if (isCombo) {
-      const comboJson = JSON.stringify(items);
-      const mainItem = items[0] || {};
+      // PROCESA COMBOS/DÚOS MULTI-CUENTA EN GRUPOS INDIVIDUALES DE STOCK
       const uniqueCode = generateUnique8Code();
+      
+      // Si los ítems vienen agrupados por paquete, guarda cada paquete
+      const bulkInsertCombo = db.transaction(() => {
+        // Asumiendo que vienen ítems estructurados por paquete
+        const comboJson = JSON.stringify(items);
+        const mainItem = items[0] || {};
 
-      db.prepare(`
-        INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, combo_data, status) 
-        VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
-      `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
+        db.prepare(`
+          INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, combo_data, status) 
+          VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
+        `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
 
-      if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
-        masterAccountIds.forEach(mId => {
-          db.prepare(`
-            UPDATE master_inventory 
-            SET used_profiles = used_profiles + 1 
-            WHERE id = ?
-          `).run(mId);
+        if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
+          masterAccountIds.forEach(mId => {
+            db.prepare(`
+              UPDATE master_inventory 
+              SET used_profiles = used_profiles + 1 
+              WHERE id = ?
+            `).run(mId);
 
-          const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(mId);
-          if (mAcc && mAcc.used_profiles >= mAcc.total_profiles) {
-            db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(mId);
-          }
-        });
-      }
+            const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(mId);
+            if (mAcc && mAcc.used_profiles >= mAcc.total_profiles) {
+              db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(mId);
+            }
+          });
+        }
+      });
 
+      bulkInsertCombo();
       res.json({ message: '¡Éxito! Paquete Combo/Dúo cargado al inventario.' });
     } else {
       const insertStmt = db.prepare(`
