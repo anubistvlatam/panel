@@ -611,6 +611,43 @@ app.post('/api/admin/stock/bulk', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al guardar el stock: ' + err.message });
   }
+  
+  // RECARGAS Y COMPROBANTES DE RESELLER (CORREGIDO)
+app.post('/api/reseller/recharge', upload.single('receiptImage'), (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+    const numAmount = parseFloat(amount);
+
+    if (!userId || isNaN(parseInt(userId))) {
+      return res.status(400).json({ error: 'ID de usuario no válido.' });
+    }
+
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ error: 'Ingresa un monto válido mayor a $0.' });
+    }
+
+    const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'El usuario no existe.' });
+    }
+
+    let receiptUrl = '';
+    if (req.file) {
+      receiptUrl = '/uploads/' + req.file.filename;
+    }
+
+    const isoNow = new Date().toISOString();
+
+    db.prepare(`
+      INSERT INTO recharge_requests (user_id, amount, receipt_url, status, created_at)
+      VALUES (?, ?, ?, 'pending', ?)
+    `).run(userId, numAmount, receiptUrl, isoNow);
+
+    res.json({ message: '¡Solicitud de recarga enviada con éxito! El administrador la revisará en breve.' });
+  } catch (err) {
+    console.error("Error procesando recarga:", err);
+    res.status(500).json({ error: 'Error enviando solicitud de recarga: ' + err.message });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
