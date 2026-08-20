@@ -22,6 +22,18 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ------------------------------------------------------------------
+// SISTEMA KEEP-ALIVE (PING AUTOMÁTICO PARA QUE RENDER NO SE DUERMA)
+// ------------------------------------------------------------------
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+if (RENDER_URL) {
+  setInterval(() => {
+    fetch(RENDER_URL)
+      .then(() => console.log(`[KEEP-ALIVE] Ping exitoso a ${RENDER_URL} para mantener servidor activo.`))
+      .catch(err => console.error(`[KEEP-ALIVE ERROR] ${err.message}`));
+  }, 10 * 60 * 1000); // Se ejecuta cada 10 minutos
+}
+
 // CREACIÓN DE LA TABLA DE INVENTARIO MAESTRO SI NO EXISTE
 try {
   db.prepare(`
@@ -176,7 +188,6 @@ app.post('/api/admin/verify-pass', (req, res) => {
   }
 });
 
-// BÚSQUEDA INSENSIBLE A MAYÚSCULAS/MINÚSCULAS
 app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
   try {
     const { platform } = req.params;
@@ -1070,7 +1081,6 @@ app.post('/api/admin/stock/bulk', (req, res) => {
         VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
       `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
 
-      // Descuenta cada perfil utilizado en los combos
       if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
         masterAccountIds.forEach(mId => {
           db.prepare(`
