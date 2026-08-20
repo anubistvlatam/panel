@@ -157,9 +157,9 @@ app.post('/api/admin/master-inventory', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, 0)
     `).run(platformName.trim(), planType || 'Mensual', emailAccount.trim(), passwordAccount.trim(), supplierName.trim(), parseInt(totalProfiles));
 
-    res.json({ message: 'Cuenta de proveedor guardada exitosamente en el Inventario.' });
+    res.json({ message: 'Cuenta guardada exitosamente en el Inventario Master.' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al registrar en inventario: ' + err.message });
+    res.status(500).json({ error: 'Error al registrar en inventario master: ' + err.message });
   }
 });
 
@@ -176,7 +176,7 @@ app.post('/api/admin/verify-pass', (req, res) => {
   }
 });
 
-// BÚSQUEDA INSENSIBLE A MAYÚSCULAS/MINÚSCULAS Y PARA COMBOS
+// BÚSQUEDA INSENSIBLE A MAYÚSCULAS/MINÚSCULAS
 app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
   try {
     const { platform } = req.params;
@@ -188,14 +188,13 @@ app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
       ORDER BY id ASC
     `).all();
 
-    // Filtra reconociendo coincidencias de texto parcial o completo ignorando mayúsculas/minúsculas
     const matchedAccounts = accounts.filter(acc => {
       const accPlatform = (acc.platform_name || '').toLowerCase();
       return accPlatform.includes(cleanSearch) || cleanSearch.includes(accPlatform);
     });
 
     if (matchedAccounts.length === 0) {
-      return res.status(404).json({ error: 'No hay cuentas disponibles en el Inventario para esta plataforma o combo.' });
+      return res.status(404).json({ error: 'No hay cuentas disponibles en el Inventario Master para este servicio.' });
     }
 
     res.json(matchedAccounts);
@@ -208,7 +207,7 @@ app.delete('/api/admin/master-inventory/:id', (req, res) => {
   try {
     const { id } = req.params;
     db.prepare("DELETE FROM master_inventory WHERE id = ?").run(id);
-    res.json({ message: 'Registro de Inventario eliminado correctamente.' });
+    res.json({ message: 'Registro de Inventario Master eliminado correctamente.' });
   } catch (err) {
     res.status(500).json({ error: 'Error al eliminar registro: ' + err.message });
   }
@@ -297,7 +296,7 @@ app.delete('/api/creator/delete-admin/:id', (req, res) => {
   }
 });
 
-// CONFIGURACIÓN DE BRANDING, SETTINGS Y TÉRMINOS Y CONDICIONES
+// CONFIGURACIÓN DE BRANDING, SETTINGS Y TÉRMINOS
 app.get('/api/settings', (req, res) => {
   try {
     cleanupOldRechargeRequests();
@@ -1053,9 +1052,9 @@ app.delete('/api/admin/products/:id', (req, res) => {
   }
 });
 
-// CARGA DE STOCK CON DESCUENTO DE INVENTARIO MAESTRO
+// CARGA DE STOCK CON DESCUENTO MULTI-CUENTA
 app.post('/api/admin/stock/bulk', (req, res) => {
-  const { productId, isCombo, masterAccountId, items } = req.body;
+  const { productId, isCombo, masterAccountIds, items } = req.body;
   if (!productId || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Completa todos los datos de los perfiles.' });
   }
@@ -1068,10 +1067,26 @@ app.post('/api/admin/stock/bulk', (req, res) => {
 
       db.prepare(`
         INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, combo_data, status) 
-        VALUES (?, ?, 'Paquete Combo', ?, ?, ?, ?, 'available')
+        VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
       `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
 
-      res.json({ message: '¡Éxito! Paquete Combo cargado al inventario.' });
+      // Descuenta cada perfil utilizado en los combos
+      if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
+        masterAccountIds.forEach(mId => {
+          db.prepare(`
+            UPDATE master_inventory 
+            SET used_profiles = used_profiles + 1 
+            WHERE id = ?
+          `).run(mId);
+
+          const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(mId);
+          if (mAcc && mAcc.used_profiles >= mAcc.total_profiles) {
+            db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(mId);
+          }
+        });
+      }
+
+      res.json({ message: '¡Éxito! Paquete Combo/Dúo cargado al inventario.' });
     } else {
       const insertStmt = db.prepare(`
         INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, status) 
@@ -1088,16 +1103,17 @@ app.post('/api/admin/stock/bulk', (req, res) => {
           }
         }
 
-        if (masterAccountId) {
+        if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
+          const mId = masterAccountIds[0];
           db.prepare(`
             UPDATE master_inventory 
             SET used_profiles = used_profiles + ? 
             WHERE id = ?
-          `).run(addedCount, masterAccountId);
+          `).run(addedCount, mId);
 
-          const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(masterAccountId);
+          const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(mId);
           if (mAcc && mAcc.used_profiles >= mAcc.total_profiles) {
-            db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(masterAccountId);
+            db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(mId);
           }
         }
       });
