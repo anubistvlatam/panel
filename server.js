@@ -135,9 +135,7 @@ function cleanupOldRechargeRequests() {
   }
 }
 
-// ------------------------------------------------------------------
 // INVENTARIO MAESTRO Y PROVEEDORES (EXCLUSIVO ADMIN)
-// ------------------------------------------------------------------
 app.get('/api/admin/master-inventory', (req, res) => {
   try {
     const items = db.prepare("SELECT * FROM master_inventory ORDER BY id DESC").all();
@@ -159,9 +157,9 @@ app.post('/api/admin/master-inventory', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, 0)
     `).run(platformName.trim(), planType || 'Mensual', emailAccount.trim(), passwordAccount.trim(), supplierName.trim(), parseInt(totalProfiles));
 
-    res.json({ message: 'Cuenta de proveedor guardada exitosamente en el Inventario Maestro.' });
+    res.json({ message: 'Cuenta de proveedor guardada exitosamente en el Inventario.' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al registrar en inventario maestro: ' + err.message });
+    res.status(500).json({ error: 'Error al registrar en inventario: ' + err.message });
   }
 });
 
@@ -178,34 +176,39 @@ app.post('/api/admin/verify-pass', (req, res) => {
   }
 });
 
+// BÚSQUEDA INSENSIBLE A MAYÚSCULAS/MINÚSCULAS Y PARA COMBOS
 app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
   try {
     const { platform } = req.params;
-    const account = db.prepare(`
-      SELECT * FROM master_inventory 
-      WHERE LOWER(platform_name) = LOWER(?) AND (total_profiles - used_profiles) > 0 AND status = 'active'
-      ORDER BY id ASC LIMIT 1
-    `).get(platform.trim());
+    const cleanSearch = (platform || '').trim().toLowerCase();
 
-    if (!account) {
-      return res.status(404).json({ error: 'No hay cuentas madre disponibles en el Inventario Maestro para esta plataforma.' });
+    const accounts = db.prepare(`
+      SELECT * FROM master_inventory 
+      WHERE (total_profiles - used_profiles) > 0 AND status = 'active'
+      ORDER BY id ASC
+    `).all();
+
+    // Filtra reconociendo coincidencias de texto parcial o completo ignorando mayúsculas/minúsculas
+    const matchedAccounts = accounts.filter(acc => {
+      const accPlatform = (acc.platform_name || '').toLowerCase();
+      return accPlatform.includes(cleanSearch) || cleanSearch.includes(accPlatform);
+    });
+
+    if (matchedAccounts.length === 0) {
+      return res.status(404).json({ error: 'No hay cuentas disponibles en el Inventario para esta plataforma o combo.' });
     }
 
-    res.json(account);
+    res.json(matchedAccounts);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener cuenta disponible: ' + err.message });
   }
 });
 
-deleteMasterInventory = (id) => {
-  db.prepare("DELETE FROM master_inventory WHERE id = ?").run(id);
-};
-
 app.delete('/api/admin/master-inventory/:id', (req, res) => {
   try {
     const { id } = req.params;
-    deleteMasterInventory(id);
-    res.json({ message: 'Registro de Inventario Maestro eliminado correctamente.' });
+    db.prepare("DELETE FROM master_inventory WHERE id = ?").run(id);
+    res.json({ message: 'Registro de Inventario eliminado correctamente.' });
   } catch (err) {
     res.status(500).json({ error: 'Error al eliminar registro: ' + err.message });
   }
@@ -372,7 +375,7 @@ app.post('/api/login', loginLimiter, (req, res) => {
 
     const userData = {
       id: user.id,
-      name: user.name || 'Usuario',
+      name: user.name || 'Administrador',
       email: user.email,
       role: user.role,
       balance: user.balance,
