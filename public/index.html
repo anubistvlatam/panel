@@ -101,12 +101,12 @@
             <span id="badge-support-review" class="hidden bg-amber-500 text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
           </button>
 
-          <!-- INVENTARIO MASTER Y PANEL ADMIN JUNTOS -->
-          <button onclick="switchTab('admin-master')" id="tab-btn-admin-master" class="hidden text-amber-400 hover:text-amber-300 font-bold pb-1">Inventario Master</button>
-          <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
-
           <button onclick="switchTab('admin-metrics')" id="tab-btn-admin-metrics" class="hidden hover:text-white pb-1">Reporte de Ventas</button>
           <button onclick="switchTab('admin-inventory')" id="tab-btn-admin-inventory" class="hidden hover:text-white pb-1">Inventario por Cuentas</button>
+
+          <!-- INVENTARIO MASTER Y PANEL ADMIN UBICADOS AL FINAL A LA DERECHA -->
+          <button onclick="switchTab('admin-master')" id="tab-btn-admin-master" class="hidden text-amber-400 hover:text-amber-300 font-bold pb-1">Inventario Master</button>
+          <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
         </nav>
       </div>
 
@@ -635,7 +635,7 @@
             </div>
           </div>
 
-          <!-- REGISTRAR PRODUCTO EN CATÁLOGO CON OPCIÓN DÚO -->
+          <!-- REGISTRAR PRODUCTO EN CATÁLOGO CON DÚO -->
           <div data-module-id="mod-7" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">3. Registrar Producto en Catálogo</h3>
@@ -2465,7 +2465,6 @@
         products.map(p => `<option value="${p.id}" data-type="${p.type}" data-name="${p.name}">${p.name} (${p.type})</option>`).join('');
     }
 
-    // LIMPIEZA DE FORMULARIO Y AUTO-LLENADO MULTI-CUENTA
     function resetStockFormInputs(platformName) {
       const container = document.getElementById('stock-inputs-container');
       container.innerHTML = `
@@ -2504,7 +2503,6 @@
         comboBadge.classList.add('hidden');
       }
 
-      // LIMPIEZA INICIAL ANTES DE BUSCAR
       resetStockFormInputs(platformName);
 
       try {
@@ -2512,7 +2510,6 @@
         if (!resMaster.ok) return;
         const allMaster = await resMaster.json();
 
-        // Extrae nombres de plataformas dentro del título (ej. "VIX + NETFLIX + HBO")
         const services = platformName.split('+').map(s => s.replace(/\(.*?\)/g, '').trim()).filter(s => s.length > 0);
         let usedMasterIds = [];
         let comboItemsHtml = '';
@@ -2533,7 +2530,7 @@
 
               if (matchedAcc) {
                 usedMasterIds.push(matchedAcc.id);
-                matchedAcc.used_profiles += 1; // Reserva temporal
+                matchedAcc.used_profiles += 1;
                 comboItemsHtml += `
                   <div class="stock-item-row p-3 bg-slate-800/50 border border-amber-500/30 rounded-lg space-y-2 mb-2">
                     <span class="text-[10px] text-amber-400 font-bold block">📦 Paquete #${pIdx} - ${srvName.toUpperCase()}</span>
@@ -2548,7 +2545,7 @@
               } else {
                 comboItemsHtml += `
                   <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2 mb-2">
-                    <span class="text-[10px] text-slate-400 font-bold block">⚠️ Paquete #${pIdx} - ${srvName.toUpperCase()} (Sin cuenta en Inventario)</span>
+                    <span class="text-[10px] text-slate-400 font-bold block">⚠️ Paquete #${pIdx} - ${srvName.toUpperCase()} (Sin cuenta en Inventario Master)</span>
                     <input type="text" value="${srvName}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
                     <input type="email" placeholder="Ingresa correo para ${srvName}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
                     <div class="grid grid-cols-2 gap-2">
@@ -2566,7 +2563,6 @@
           masterBadge.classList.remove('hidden');
 
         } else {
-          // BÚSQUEDA PARA INDIVIDUALES
           const srvName = services[0] || platformName;
           const matchedAcc = allMaster.find(acc => {
             const accName = (acc.platform_name || '').toLowerCase();
