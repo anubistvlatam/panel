@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <!-- VISTA PRINCIPAL CON BARRA SUPERIOR -->
+  <!-- VISTA PRINCIPAL CON PESTAÑA DEDICADA DE INVENTARIO PARA EL ADMIN -->
   <div id="view-app" class="hidden min-h-screen flex-col">
     <header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 backdrop-blur px-8 py-3 shadow-xl min-h-[70px]">
       <div class="flex items-center gap-8">
@@ -101,6 +101,8 @@
             <span id="badge-support-review" class="hidden bg-amber-500 text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
           </button>
 
+          <!-- NUEVA PESTAÑA INDEPENDIENTE DE INVENTARIO ADMIN -->
+          <button onclick="switchTab('admin-master')" id="tab-btn-admin-master" class="hidden text-amber-400 hover:text-amber-300 font-bold pb-1">Inventario Admin</button>
           <button onclick="switchTab('admin-metrics')" id="tab-btn-admin-metrics" class="hidden hover:text-white pb-1">Reporte de Ventas</button>
           <button onclick="switchTab('admin-inventory')" id="tab-btn-admin-inventory" class="hidden hover:text-white pb-1">Inventario por Cuentas</button>
           <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden hover:text-white pb-1">Panel Admin</button>
@@ -407,18 +409,12 @@
         </div>
       </div>
 
-      <!-- PANEL ADMIN CON NAVEGACIÓN FLUIDA -->
-      <div id="tab-admin" class="hidden space-y-8">
-        <div class="flex justify-between items-center">
-          <h2 class="text-2xl font-bold text-amber-500">Gestión Operativa de Administrador</h2>
-          <span class="text-xs text-slate-400 font-semibold">💡 Usa los botones ⬆️ / ⬇️ para ordenar los paneles</span>
-        </div>
-
-        <!-- MÓDULO NUEVO: INVENTARIO MAESTRO Y PROVEEDORES -->
+      <!-- VISTA PESTAÑA DEDICADA: INVENTARIO [NOMBRE ADMIN] -->
+      <div id="tab-admin-master" class="hidden space-y-8">
         <div class="p-6 bg-slate-900 border border-amber-500/40 rounded-2xl space-y-4 shadow-xl">
           <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <h3 class="text-lg font-bold text-amber-400">📦 Inventario Maestro de Cuentas Madre y Proveedores</h3>
-            <span class="text-xs text-slate-400 font-semibold">Cuentas compradas a proveedores</span>
+            <h3 class="text-xl font-extrabold text-amber-400">📦 Inventario <span id="admin-inventory-title-name">Admin</span></h3>
+            <span class="text-xs text-slate-400 font-semibold">Cuentas madre y proveedores registrados</span>
           </div>
 
           <form id="form-master-inventory" class="space-y-3">
@@ -456,12 +452,11 @@
             </div>
 
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition uppercase">
-              ➕ Guardar Cuenta Madre en Inventario Maestro
+              ➕ Guardar Cuenta Madre en Inventario
             </button>
           </form>
 
-          <!-- TABLA DE INVENTARIO MAESTRO -->
-          <div class="mt-4 overflow-x-auto max-h-60 overflow-y-auto border border-slate-800 rounded-xl">
+          <div class="mt-4 overflow-x-auto max-h-80 overflow-y-auto border border-slate-800 rounded-xl">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="bg-slate-800 uppercase text-slate-400 sticky top-0">
                 <tr>
@@ -477,6 +472,14 @@
               <tbody id="master-inventory-table-body"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- PANEL ADMIN CON NAVEGACIÓN FLUIDA -->
+      <div id="tab-admin" class="hidden space-y-8">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-amber-500">Gestión Operativa de Administrador</h2>
+          <span class="text-xs text-slate-400 font-semibold">💡 Usa los botones ⬆️ / ⬇️ para ordenar los paneles</span>
         </div>
 
         <div id="admin-modules-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -653,7 +656,7 @@
             </form>
           </div>
 
-          <!-- CARGA DE STOCK MEJORADA CON AUTO-LLENADO -->
+          <!-- CARGA DE STOCK -->
           <div data-module-id="mod-8" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">4. Cargar Perfiles / Cuentas al Stock</h3>
@@ -664,7 +667,7 @@
             </div>
             
             <p id="combo-badge" class="text-xs text-amber-400 font-bold mb-2 hidden">Modo: Cargando Paquete COMBO</p>
-            <p id="master-found-badge" class="text-xs text-emerald-400 font-bold mb-2 hidden">✨ Datos auto-cargados desde Inventario Maestro</p>
+            <p id="master-found-badge" class="text-xs text-emerald-400 font-bold mb-2 hidden">✨ Datos auto-cargados desde Inventario</p>
 
             <form id="form-add-stock" class="space-y-3">
               <select id="stock-product-select" onchange="updatePlatformInputs()" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none">
@@ -770,7 +773,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMACIÓN DE SEGURIDAD ADMIN PARA OJO 👁️ -->
+  <!-- MODAL SEGURIDAD VERIFICAR PASSWORD ADMIN -->
   <div id="modal-verify-admin-pass" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/50 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
       <h3 class="text-lg font-bold text-amber-500">🔒 Autenticación de Seguridad</h3>
@@ -1012,7 +1015,7 @@
 
     loadGlobalBranding();
 
-    // INVENTARIO MAESTRO Y SEGURIDAD OJO
+    // INVENTARIO ADMIN
     async function loadMasterInventory() {
       try {
         const res = await fetch('/api/admin/master-inventory');
@@ -1022,7 +1025,7 @@
         if (!tbody) return;
 
         if (!Array.isArray(masterInventoryCache) || masterInventoryCache.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 text-center">No hay cuentas madre registradas en el Inventario Maestro.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 text-center">No hay cuentas madre registradas en el Inventario.</td></tr>`;
           return;
         }
 
@@ -1051,7 +1054,7 @@
           `;
         }).join('');
       } catch (err) {
-        console.error("Error cargando inventario maestro:", err);
+        console.error("Error cargando inventario:", err);
       }
     }
 
@@ -1129,14 +1132,14 @@
     }
 
     async function deleteMasterInventory(id) {
-      if (!confirm("¿Estás seguro de eliminar esta cuenta madre del Inventario Maestro?")) return;
+      if (!confirm("¿Estás seguro de eliminar esta cuenta madre del Inventario?")) return;
       try {
         const res = await fetch(`/api/admin/master-inventory/${id}`, { method: 'DELETE' });
         const data = await res.json();
         alert(data.message || data.error);
         if (res.ok) loadMasterInventory();
       } catch (err) {
-        alert("Error al eliminar cuenta del inventario maestro.");
+        alert("Error al eliminar cuenta del inventario.");
       }
     }
 
@@ -1311,7 +1314,12 @@
 
       document.getElementById('user-email-display').innerText = `${currentUser.email} (${currentUser.role})`;
 
+      const adminName = currentUser.name || "Admin";
+      document.getElementById('admin-inventory-title-name').innerText = adminName;
+      document.getElementById('tab-btn-admin-master').innerText = `Inventario ${adminName}`;
+
       if (currentUser.role === 'admin') {
+        document.getElementById('tab-btn-admin-master').classList.remove('hidden');
         document.getElementById('tab-btn-admin').classList.remove('hidden');
         document.getElementById('tab-btn-admin-metrics').classList.remove('hidden');
         document.getElementById('tab-btn-admin-inventory').classList.remove('hidden');
@@ -1322,6 +1330,7 @@
         restoreModulesOrder();
         loadAdminSalesReport();
       } else {
+        document.getElementById('tab-btn-admin-master').classList.add('hidden');
         document.getElementById('tab-btn-admin').classList.add('hidden');
         document.getElementById('tab-btn-admin-metrics').classList.add('hidden');
         document.getElementById('tab-btn-admin-inventory').classList.add('hidden');
@@ -1407,6 +1416,8 @@
         if (res.ok) {
           currentUser.name = data.newName;
           updateGreeting();
+          document.getElementById('admin-inventory-title-name').innerText = data.newName;
+          document.getElementById('tab-btn-admin-master').innerText = `Inventario ${data.newName}`;
         }
       } catch (err) {
         alert("Error de conexión al guardar el nombre.");
@@ -1803,7 +1814,7 @@
     }
 
     function switchTab(tab) {
-      if ((tab === 'admin' || tab === 'admin-metrics' || tab === 'admin-inventory') && (!currentUser || currentUser.role !== 'admin')) {
+      if ((tab === 'admin' || tab === 'admin-metrics' || tab === 'admin-inventory' || tab === 'admin-master') && (!currentUser || currentUser.role !== 'admin')) {
         tab = 'store';
       }
 
@@ -1813,6 +1824,7 @@
       document.getElementById('tab-whatsapp').classList.add('hidden');
       document.getElementById('tab-terms').classList.add('hidden');
       document.getElementById('tab-support').classList.add('hidden');
+      document.getElementById('tab-admin-master').classList.add('hidden');
       document.getElementById('tab-admin-metrics').classList.add('hidden');
       document.getElementById('tab-admin-inventory').classList.add('hidden');
       document.getElementById('tab-admin').classList.add('hidden');
@@ -1825,6 +1837,7 @@
       document.getElementById('tab-btn-support').className = "relative hover:text-white pb-1 flex items-center gap-1.5";
       
       if (currentUser && currentUser.role === 'admin') {
+        document.getElementById('tab-btn-admin-master').className = "text-amber-400 hover:text-amber-300 font-bold pb-1";
         document.getElementById('tab-btn-admin-metrics').className = "hover:text-white pb-1";
         document.getElementById('tab-btn-admin-inventory').className = "hover:text-white pb-1";
         document.getElementById('tab-btn-admin').className = "hover:text-white pb-1";
@@ -1858,6 +1871,10 @@
         document.getElementById('badge-support-open').classList.add('hidden');
         document.getElementById('badge-support-review').classList.add('hidden');
         loadSupportTickets();
+      } else if (tab === 'admin-master') {
+        document.getElementById('tab-admin-master').classList.remove('hidden');
+        document.getElementById('tab-btn-admin-master').className = "text-amber-400 border-b-2 border-amber-500 pb-1 font-bold";
+        loadMasterInventory();
       } else if (tab === 'admin-metrics') {
         document.getElementById('tab-admin-metrics').classList.remove('hidden');
         document.getElementById('tab-btn-admin-metrics').className = "text-white border-b-2 border-amber-500 pb-1";
@@ -1870,7 +1887,6 @@
       } else if (tab === 'admin') {
         document.getElementById('tab-admin').classList.remove('hidden');
         document.getElementById('tab-btn-admin').className = "text-white border-b-2 border-amber-500 pb-1";
-        loadMasterInventory();
         loadAdminProductOptions();
         loadUsersTable();
         loadRechargeRequestsTable();
@@ -1908,6 +1924,7 @@
       }).join('');
     }
 
+    // CARGA DE CATÁLOGO MOSTRANDO "CUENTA COMPLETA" EXACTAMENTE
     async function loadProducts() {
       const res = await fetch('/api/products');
       const products = await res.json();
@@ -1922,11 +1939,17 @@
         const pNameEsc = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const pImgEsc = (p.image_url || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+        // CORRECCIÓN PUNTO 5: MOSTRAR "CUENTA COMPLETA"
+        let displayType = p.type;
+        if (p.type === 'Cuenta' || p.type === 'CUENTA') {
+          displayType = 'CUENTA COMPLETA';
+        }
+
         return `
           <div class="rounded-xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between overflow-hidden">
             <div>
               ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover rounded-lg mb-4 border border-slate-800">` : ''}
-              <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">${p.type}</span>
+              <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">${displayType}</span>
               <h3 class="text-lg font-bold text-white mt-1">${p.name}</h3>
               <div class="mt-4 text-xs text-slate-400 space-y-1">
                 <p>Stock disponible: <strong class="text-slate-200">${p.stock_count}</strong></p>
@@ -2446,7 +2469,7 @@
         products.map(p => `<option value="${p.id}" data-type="${p.type}" data-name="${p.name}">${p.name} (${p.type})</option>`).join('');
     }
 
-    // LÓGICA DE AUTO-LLENADO Y DESCUENTO DE PERFILES DESDE INVENTARIO MAESTRO
+    // CARGA Y PREGUNTA INTELIGENTE PARA COMBOS Y PERFILES
     async function updatePlatformInputs() {
       const select = document.getElementById('stock-product-select');
       const selectedOption = select.options[select.selectedIndex];
@@ -2468,13 +2491,17 @@
       try {
         const res = await fetch(`/api/admin/master-inventory/available/${encodeURIComponent(platformName)}`);
         if (res.ok) {
-          const masterAcc = await res.json();
+          const masterAccounts = await res.json();
+          if (!Array.isArray(masterAccounts) || masterAccounts.length === 0) return;
+
+          const masterAcc = masterAccounts[0];
           masterBadge.classList.remove('hidden');
           document.getElementById('stock-master-account-id').value = masterAcc.id;
 
           const container = document.getElementById('stock-inputs-container');
           const availProfiles = masterAcc.total_profiles - masterAcc.used_profiles;
 
+          // SI ES CUENTA COMPLETA: NO PREGUNTA Y TOMA LA CUENTA
           if (productType === 'Cuenta') {
             container.innerHTML = `
               <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
@@ -2487,8 +2514,19 @@
               </div>
             `;
           } else {
+            // APLICA PARA PERFILES, COMBOS Y DÚOS: PREGUNTA CUÁNTOS PERFILES DESEA CARGAR
+            const promptAns = prompt(`Se encontró la cuenta madre "${masterAcc.email_account}" con ${availProfiles} perfil(es) disponible(s).\n¿Cuántos perfiles deseas cargar al stock?`, availProfiles);
+            let countToLoad = parseInt(promptAns);
+
+            if (isNaN(countToLoad) || countToLoad <= 0) {
+              countToLoad = availProfiles;
+            } else if (countToLoad > availProfiles) {
+              alert(`Solo hay ${availProfiles} perfil(es) disponible(s) en la cuenta madre. Se cargarán ${availProfiles}.`);
+              countToLoad = availProfiles;
+            }
+
             let rowsHtml = '';
-            for (let i = 1; i <= availProfiles; i++) {
+            for (let i = 1; i <= countToLoad; i++) {
               const currentNum = masterAcc.used_profiles + i;
               rowsHtml += `
                 <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
