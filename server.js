@@ -22,6 +22,26 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// CREACIÓN DE LA TABLA DE INVENTARIO MAESTRO SI NO EXISTE
+try {
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS master_inventory (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      platform_name TEXT NOT NULL,
+      plan_type TEXT NOT NULL,
+      email_account TEXT NOT NULL,
+      password_account TEXT NOT NULL,
+      supplier_name TEXT NOT NULL,
+      total_profiles INTEGER NOT NULL,
+      used_profiles INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
+} catch (e) {
+  console.error("Error creando tabla master_inventory:", e);
+}
+
 // CONFIGURACIÓN DE ENVÍO DE CORREO RECUPERACIÓN VÍA API HTTP BREVO
 async function sendAdminRecoveryEmail(toEmail, tempPassword) {
   const brevoApiKey = process.env.BREVO_API_KEY || 'xkeysib-917acae54fd28a2b2d2fbb0f3c2ef353c9d2f272880';
@@ -116,8 +136,82 @@ function cleanupOldRechargeRequests() {
 }
 
 // ------------------------------------------------------------------
-// RUTAS EXCLUSIVAS DEL PANEL CREADOR
+// INVENTARIO MAESTRO Y PROVEEDORES (EXCLUSIVO ADMIN)
 // ------------------------------------------------------------------
+app.get('/api/admin/master-inventory', (req, res) => {
+  try {
+    const items = db.prepare("SELECT * FROM master_inventory ORDER BY id DESC").all();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: 'Error cargando inventario maestro: ' + err.message });
+  }
+});
+
+app.post('/api/admin/master-inventory', (req, res) => {
+  try {
+    const { platformName, planType, emailAccount, passwordAccount, supplierName, totalProfiles } = req.body;
+    if (!platformName || !emailAccount || !passwordAccount || !supplierName || !totalProfiles) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+    }
+
+    db.prepare(`
+      INSERT INTO master_inventory (platform_name, plan_type, email_account, password_account, supplier_name, total_profiles, used_profiles)
+      VALUES (?, ?, ?, ?, ?, ?, 0)
+    `).run(platformName.trim(), planType || 'Mensual', emailAccount.trim(), passwordAccount.trim(), supplierName.trim(), parseInt(totalProfiles));
+
+    res.json({ message: 'Cuenta de proveedor guardada exitosamente en el Inventario Maestro.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al registrar en inventario maestro: ' + err.message });
+  }
+});
+
+app.post('/api/admin/verify-pass', (req, res) => {
+  try {
+    const { adminPassword } = req.body;
+    const admin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();
+    if (!admin || !bcrypt.compareSync(adminPassword, admin.password)) {
+      return res.status(401).json({ error: 'Contraseña de Administrador incorrecta.' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error verificando contraseña: ' + err.message });
+  }
+});
+
+app.get('/api/admin/master-inventory/available/:platform', (req, res) => {
+  try {
+    const { platform } = req.params;
+    const account = db.prepare(`
+      SELECT * FROM master_inventory 
+      WHERE LOWER(platform_name) = LOWER(?) AND (total_profiles - used_profiles) > 0 AND status = 'active'
+      ORDER BY id ASC LIMIT 1
+    `).get(platform.trim());
+
+    if (!account) {
+      return res.status(404).json({ error: 'No hay cuentas madre disponibles en el Inventario Maestro para esta plataforma.' });
+    }
+
+    res.json(account);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener cuenta disponible: ' + err.message });
+  }
+});
+
+deleteMasterInventory = (id) => {
+  db.prepare("DELETE FROM master_inventory WHERE id = ?").run(id);
+};
+
+app.delete('/api/admin/master-inventory/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    deleteMasterInventory(id);
+    res.json({ message: 'Registro de Inventario Maestro eliminado correctamente.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al eliminar registro: ' + err.message });
+  }
+});
+
+// RUTAS EXCLUSIVAS DEL PANEL CREADOR
 let creatorPassHash = bcrypt.hashSync("Anubis.123*", 10);
 let creatorMustChangePass = false;
 
@@ -546,7 +640,7 @@ app.post('/api/admin/delete-user', (req, res) => {
   }
 });
 
-// RECARGAS Y COMPROBANTES DE RESELLER (CORREGIDO)
+// RECARGAS Y COMPROBANTES DE RESELLER
 app.post('/api/reseller/recharge', upload.single('receiptImage'), (req, res) => {
   try {
     const { userId, amount } = req.body;
@@ -956,8 +1050,9 @@ app.delete('/api/admin/products/:id', (req, res) => {
   }
 });
 
+// CARGA DE STOCK CON DESCUENTO DE INVENTARIO MAESTRO
 app.post('/api/admin/stock/bulk', (req, res) => {
-  const { productId, isCombo, items } = req.body;
+  const { productId, isCombo, masterAccountId, items } = req.body;
   if (!productId || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Completa todos los datos de los perfiles.' });
   }
@@ -980,17 +1075,32 @@ app.post('/api/admin/stock/bulk', (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, 'available')
       `);
 
+      let addedCount = 0;
       const bulkInsert = db.transaction((rows) => {
         for (const item of rows) {
           if (item.email && item.password && item.profile) {
             const uniqueCode = generateUnique8Code();
             insertStmt.run(uniqueCode, parseInt(productId), item.platform || '', item.email.trim(), item.password.trim(), item.profile.trim());
+            addedCount++;
+          }
+        }
+
+        if (masterAccountId) {
+          db.prepare(`
+            UPDATE master_inventory 
+            SET used_profiles = used_profiles + ? 
+            WHERE id = ?
+          `).run(addedCount, masterAccountId);
+
+          const mAcc = db.prepare("SELECT * FROM master_inventory WHERE id = ?").get(masterAccountId);
+          if (mAcc && mAcc.used_profiles >= mAcc.total_profiles) {
+            db.prepare("UPDATE master_inventory SET status = 'exhausted' WHERE id = ?").run(masterAccountId);
           }
         }
       });
 
       bulkInsert(items);
-      res.json({ message: `¡Éxito! Se agregaron ${items.length} perfiles al inventario.` });
+      res.json({ message: `¡Éxito! Se agregaron ${items.length} unidades/perfiles al inventario.` });
     }
   } catch (err) {
     res.status(500).json({ error: 'Error al guardar el stock: ' + err.message });
