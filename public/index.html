@@ -141,7 +141,7 @@
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 uppercase">Ventas Hoy</span>
           <h3 class="text-2xl font-black text-white mt-1" id="dash-today-count">0</h3>
-          <p class="text-xs text-slate-500 mt-1">Unidades delivered</p>
+          <p class="text-xs text-slate-500 mt-1">Unidades entregadas</p>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
@@ -296,7 +296,7 @@
         </div>
       </div>
 
-      <!-- SOPORTE TÉCNICO -->
+      <!-- SOPORTE TÉCNICO CON DETALLE DE CUENTA REPORTADA -->
       <div id="tab-support" class="hidden space-y-8">
         <div class="flex justify-between items-center">
           <h2 class="text-2xl font-bold text-amber-500">Centro de Soporte Técnico</h2>
@@ -312,15 +312,32 @@
             <h3 class="text-lg font-bold text-white">Crear Nuevo Ticket</h3>
             <form id="form-create-ticket" class="space-y-3">
               <div>
-                <label class="block text-xs uppercase text-slate-400 mb-1">Orden / Perfil Afectado (Opcional)</label>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Orden Afectada (Opcional)</label>
                 <select id="ticket-order-id" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
                   <option value="">Cargando órdenes...</option>
                 </select>
               </div>
 
+              <!-- NUEVOS CAMPOS DE SOPORTE -->
+              <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Plataforma / Servicio Reportado</label>
+                <input type="text" id="ticket-platform" placeholder="Ej: Netflix / HBO" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-amber-400 font-bold focus:outline-none">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Correo de la Cuenta</label>
+                  <input type="text" id="ticket-email" placeholder="correo@cuenta.com" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Contraseña</label>
+                  <input type="text" id="ticket-password" placeholder="••••••••" class="w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs uppercase text-slate-400 mb-1">Asunto / Tipo de Falla</label>
-                <input type="text" id="ticket-subject" placeholder="Ej: Clave incorrecta en Netflix" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
+                <input type="text" id="ticket-subject" placeholder="Ej: Clave incorrecta o pantalla caída" required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none">
               </div>
 
               <div>
@@ -330,7 +347,7 @@
 
               <div>
                 <label class="block text-xs uppercase text-slate-400 mb-1">Comentario / Detalle del Error</label>
-                <textarea id="ticket-comment" rows="3" placeholder="Explica detalladamente la falla reportada por el cliente..." required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"></textarea>
+                <textarea id="ticket-comment" rows="3" placeholder="Explica detalladamente la falla..." required class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"></textarea>
               </div>
 
               <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-2.5 rounded-lg font-bold text-xs">Enviar Ticket</button>
@@ -476,7 +493,7 @@
         </div>
       </div>
 
-      <!-- PANEL ADMIN CON NAVEGACIÓN FLUIDA -->
+      <!-- PANEL ADMIN -->
       <div id="tab-admin" class="hidden space-y-8">
         <div class="flex justify-between items-center">
           <h2 class="text-2xl font-bold text-amber-500">Gestión Operativa de Administrador</h2>
@@ -659,7 +676,7 @@
             </form>
           </div>
 
-          <!-- CARGA DE STOCK MEJORADA MULTI-SERVICIO -->
+          <!-- CARGA DE STOCK MULTI-SERVICIO DE COMBOS / DÚOS -->
           <div data-module-id="mod-8" class="admin-module-card p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <h3 class="text-lg font-bold text-white">4. Cargar Perfiles / Cuentas al Stock</h3>
@@ -678,6 +695,7 @@
               </select>
 
               <input type="hidden" id="stock-master-account-ids">
+              <input type="hidden" id="stock-packs-count" value="1">
               
               <div id="stock-inputs-container" class="space-y-3 max-h-60 overflow-y-auto pr-1">
                 <div class="stock-item-row p-3 bg-slate-800/50 border border-slate-800 rounded-lg space-y-2">
@@ -2290,7 +2308,7 @@
 
             <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80 space-y-2">
               <p class="text-xs font-semibold text-slate-300">Reporte del Revendedor:</p>
-              <p class="text-xs text-slate-400">${t.comment}</p>
+              <p class="text-xs text-slate-400 whitespace-pre-line">${t.comment}</p>
               ${t.image_url ? `
                 <div class="pt-1">
                   <a href="${t.image_url}" target="_blank" class="text-xs text-amber-400 hover:underline inline-block font-semibold mb-1">🖼️ Captura Adjunta por Revendedor</a>
@@ -2399,9 +2417,13 @@
       }
     });
 
+    // FORMULARIO SOPORTE CON CAMPOS DE PLANO Y CUENTA REPORTADA
     document.getElementById('form-create-ticket').addEventListener('submit', async (e) => {
       e.preventDefault();
       const orderId = document.getElementById('ticket-order-id').value;
+      const platformReported = document.getElementById('ticket-platform').value;
+      const emailReported = document.getElementById('ticket-email').value;
+      const passwordReported = document.getElementById('ticket-password').value;
       const subject = document.getElementById('ticket-subject').value;
       const comment = document.getElementById('ticket-comment').value;
       const fileInput = document.getElementById('ticket-image-file');
@@ -2409,6 +2431,9 @@
       const formData = new FormData();
       formData.append('userId', currentUser.id);
       formData.append('orderId', orderId);
+      formData.append('platformReported', platformReported);
+      formData.append('emailReported', emailReported);
+      formData.append('passwordReported', passwordReported);
       formData.append('subject', subject);
       formData.append('comment', comment);
       
@@ -2479,7 +2504,7 @@
       `;
     }
 
-    // DESGLOSE AUTOMÁTICO DE SERVICIOS PARA COMBOS Y DÚOS
+    // DESGLOSE MULTI-CUENTA CORREGIDO PARA COMBOS Y DÚOS
     async function updatePlatformInputs() {
       const select = document.getElementById('stock-product-select');
       const selectedOption = select.options[select.selectedIndex];
@@ -2489,6 +2514,7 @@
       const comboBadge = document.getElementById('combo-badge');
       const masterBadge = document.getElementById('master-found-badge');
       document.getElementById('stock-master-account-ids').value = '';
+      document.getElementById('stock-packs-count').value = '1';
 
       if (!platformName) {
         resetStockFormInputs('');
@@ -2497,7 +2523,6 @@
         return;
       }
 
-      // Limpia la búsqueda
       let cleanName = platformName.replace(/^COMBO\s+/i, '').replace(/^DUO\s+/i, '').replace(/^DÚO\s+/i, '');
       const isComboOrDuo = productType === 'Combo' || productType === 'Dúo' || productType === 'DUO' || productType === 'COMBO' || cleanName.includes('+');
 
@@ -2514,15 +2539,16 @@
         if (!resMaster.ok) return;
         const allMaster = await resMaster.json();
 
-        // Extrae nombres individuales (ej. ["NETFLIX", "VIX", "HBO"])
         const rawServices = cleanName.split('+').map(s => s.replace(/\(.*?\)/g, '').trim()).filter(s => s.length > 0);
         let usedMasterIds = [];
         let comboItemsHtml = '';
 
         if (isComboOrDuo && rawServices.length > 1) {
-          const promptAns = prompt(`El paquete "${platformName}" contiene ${rawServices.length} servicios (${rawServices.join(', ')}).\n¿Cuántas unidades de este paquete deseas armar?`, "1");
+          const promptAns = prompt(`El paquete "${platformName}" contiene ${rawServices.length} servicios (${rawServices.join(', ')}).\n¿Cuántos paquetes completos de stock deseas armar?`, "1");
           let packsToLoad = parseInt(promptAns);
           if (isNaN(packsToLoad) || packsToLoad <= 0) packsToLoad = 1;
+
+          document.getElementById('stock-packs-count').value = packsToLoad;
 
           for (let pIdx = 1; pIdx <= packsToLoad; pIdx++) {
             rawServices.forEach(srvName => {
@@ -2538,7 +2564,7 @@
                 matchedAcc.used_profiles += 1;
                 comboItemsHtml += `
                   <div class="stock-item-row p-3 bg-slate-800/50 border border-amber-500/30 rounded-lg space-y-2 mb-2">
-                    <span class="text-[10px] text-amber-400 font-bold block">📦 Paquete #${pIdx} - Servicio: ${srvName.toUpperCase()}</span>
+                    <span class="text-[10px] text-amber-400 font-bold block">📦 Paquete Combo/Dúo #${pIdx} - Servicio: ${srvName.toUpperCase()}</span>
                     <input type="text" value="${srvName.toUpperCase()}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
                     <input type="email" value="${matchedAcc.email_account}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
                     <div class="grid grid-cols-2 gap-2">
@@ -2550,7 +2576,7 @@
               } else {
                 comboItemsHtml += `
                   <div class="stock-item-row p-3 bg-slate-800/50 border border-red-500/30 rounded-lg space-y-2 mb-2">
-                    <span class="text-[10px] text-red-400 font-bold block">⚠️ Paquete #${pIdx} - ${srvName.toUpperCase()} (Sin cuenta en Inventario Master)</span>
+                    <span class="text-[10px] text-red-400 font-bold block">⚠️ Paquete Combo/Dúo #${pIdx} - ${srvName.toUpperCase()} (Sin cuenta en Inventario Master)</span>
                     <input type="text" value="${srvName.toUpperCase()}" required class="stock-platform w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-amber-400 font-bold focus:outline-none">
                     <input type="email" placeholder="Ingresa correo de ${srvName}" required class="stock-email w-full p-2 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none">
                     <div class="grid grid-cols-2 gap-2">
@@ -2568,7 +2594,7 @@
           masterBadge.classList.remove('hidden');
 
         } else {
-          // BÚSQUEDA PARA INDIVIDUAL
+          // BÚSQUEDA PARA PRODUCTO INDIVIDUAL
           const srvName = rawServices[0] || platformName;
           const matchedAcc = allMaster.find(acc => {
             const accName = (acc.platform_name || '').toLowerCase();
@@ -2841,6 +2867,7 @@
       const selectedOption = select.options[select.selectedIndex];
       const productType = selectedOption ? selectedOption.getAttribute('data-type') : '';
       const masterIdsRaw = document.getElementById('stock-master-account-ids').value;
+      const packsCount = document.getElementById('stock-packs-count').value;
       let masterAccountIds = [];
 
       if (masterIdsRaw) {
@@ -2873,6 +2900,7 @@
           productId, 
           isCombo: isComboOrDuo, 
           masterAccountIds,
+          packs: packsCount,
           items 
         })
       });
