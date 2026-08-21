@@ -703,10 +703,10 @@ app.post('/api/admin/recharge-requests/process', (req, res) => {
   }
 });
 
-// TICKETS Y SOPORTE
+// TICKETS Y SOPORTE (CON CAMPOS DE DETALLE)
 app.post('/api/support/tickets', upload.single('ticketImage'), (req, res) => {
   try {
-    const { userId, orderId, subject, comment } = req.body;
+    const { userId, orderId, subject, comment, platformReported, emailReported, passwordReported } = req.body;
     if (!subject || !comment) return res.status(400).json({ error: 'El asunto y el comentario son obligatorios.' });
 
     let imageUrl = '';
@@ -714,10 +714,19 @@ app.post('/api/support/tickets', upload.single('ticketImage'), (req, res) => {
 
     const isoDate = new Date().toISOString();
 
+    // Construye un comentario detallado incluyendo la cuenta reportada si se especifica
+    let fullComment = comment.trim();
+    if (platformReported || emailReported || passwordReported) {
+      fullComment += `\n\n📌 [DATOS DEL REPORTADO]:`;
+      if (platformReported) fullComment += `\n- Plataforma: ${platformReported.trim()}`;
+      if (emailReported) fullComment += `\n- Correo: ${emailReported.trim()}`;
+      if (passwordReported) fullComment += `\n- Clave: ${passwordReported.trim()}`;
+    }
+
     db.prepare(`
       INSERT INTO support_tickets (user_id, order_id, subject, comment, image_url, status, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, 'open', ?, ?)
-    `).run(userId, orderId || null, subject.trim(), comment.trim(), imageUrl, isoDate, isoDate);
+    `).run(userId, orderId || null, subject.trim(), fullComment, imageUrl, isoDate, isoDate);
 
     res.json({ message: 'Ticket de soporte enviado correctamente.' });
   } catch (err) {
@@ -1033,29 +1042,33 @@ app.delete('/api/admin/products/:id', (req, res) => {
   }
 });
 
-// CARGA DE STOCK CON DESCUENTO MULTI-CUENTA
+// CARGA DE STOCK MULTI-PAQUETE (COMBOS / DÚOS PROCESADOS EN BUCLE)
 app.post('/api/admin/stock/bulk', (req, res) => {
-  const { productId, isCombo, masterAccountIds, items } = req.body;
+  const { productId, isCombo, masterAccountIds, items, packs } = req.body;
   if (!productId || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Completa todos los datos de los perfiles.' });
   }
 
   try {
     if (isCombo) {
-      // PROCESA COMBOS/DÚOS MULTI-CUENTA EN GRUPOS INDIVIDUALES DE STOCK
-      const uniqueCode = generateUnique8Code();
-      
-      // Si los ítems vienen agrupados por paquete, guarda cada paquete
+      // PROCESA CADA PAQUETE POR SEPARADO
+      const numPacks = parseInt(packs) || 1;
+      const itemsPerPack = Math.floor(items.length / numPacks);
+
       const bulkInsertCombo = db.transaction(() => {
-        // Asumiendo que vienen ítems estructurados por paquete
-        const comboJson = JSON.stringify(items);
-        const mainItem = items[0] || {};
+        for (let p = 0; p < numPacks; p++) {
+          const packItems = items.slice(p * itemsPerPack, (p + 1) * itemsPerPack);
+          const comboJson = JSON.stringify(packItems);
+          const mainItem = packItems[0] || {};
+          const uniqueCode = generateUnique8Code();
 
-        db.prepare(`
-          INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, combo_data, status) 
-          VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
-        `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
+          db.prepare(`
+            INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, combo_data, status) 
+            VALUES (?, ?, 'Paquete Combo/Dúo', ?, ?, ?, ?, 'available')
+          `).run(uniqueCode, parseInt(productId), mainItem.email || 'Combo Multi-Cuenta', mainItem.password || 'Varias', 'Acceso Completo', comboJson);
+        }
 
+        // Descuenta todos los perfiles asignados desde el Inventario Master
         if (Array.isArray(masterAccountIds) && masterAccountIds.length > 0) {
           masterAccountIds.forEach(mId => {
             db.prepare(`
@@ -1073,7 +1086,7 @@ app.post('/api/admin/stock/bulk', (req, res) => {
       });
 
       bulkInsertCombo();
-      res.json({ message: '¡Éxito! Paquete Combo/Dúo cargado al inventario.' });
+      res.json({ message: `¡Éxito! Se agregaron ${numPacks} paquete(s) Combo/Dúo al stock.` });
     } else {
       const insertStmt = db.prepare(`
         INSERT INTO stock (unique_code, product_id, platform_name, email_account, password_account, profile_name, status) 
